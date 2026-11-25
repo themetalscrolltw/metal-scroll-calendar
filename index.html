@@ -373,7 +373,6 @@
 
             const weekDateStrSet = new Set(weekDates.map(formatDateStr));
 
-            // 搜尋模式時隱藏 7 日週條，直接跨月展示所有符合的場次
             if (mobileSearchKeyword) {
                 stripEl.classList.add('hidden');
                 if (clearSearchBtn) clearSearchBtn.classList.remove('hidden');
@@ -412,7 +411,6 @@
             stripEl.classList.remove('hidden');
             if (clearSearchBtn) clearSearchBtn.classList.add('hidden');
 
-            // 統一白底卡片，不特別幫今日加淺藍底色，避免誤以為被點選
             stripEl.innerHTML = weekDates.map(function(dObj, idx) {
                 const dStr = formatDateStr(dObj);
                 const dayCount = eventsData.filter(function(ev) {

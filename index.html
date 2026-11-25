@@ -89,8 +89,18 @@
         }
 
         @media (max-width: 767.98px) {
-            .desktop-calendar-view {
+            .day-cell {
+                min-height: 54px;
+                padding: 6px 4px;
+                cursor: pointer;
+            }
+            .day-cell .desktop-events {
                 display: none;
+            }
+            .day-cell.selected-mobile-day {
+                border-color: #3730a3;
+                background: rgba(224, 231, 255, 0.85);
+                box-shadow: inset 0 0 0 1px rgba(55, 48, 163, 0.45);
             }
         }
     </style>
@@ -99,56 +109,58 @@
 
     <div class="max-w-7xl mx-auto">
         <header class="glass-indigo-panel flex flex-col md:flex-row justify-between items-center mb-6 p-6 rounded-2xl shadow-sm gap-4">
-            <div class="flex items-center gap-4">
+            <div class="flex items-center gap-3 sm:gap-4 min-w-0">
                 <img src="logo_circle.png" alt="The Metal Scroll Logo" class="w-11 h-11 rounded-full object-cover border border-indigo-800/20 shrink-0" />
-                <div>
-                    <div class="inline-flex items-center gap-2 text-[11px] font-semibold tracking-widest uppercase text-indigo-800/80 bg-indigo-100/70 px-2.5 py-0.5 rounded-full mb-1">
+                <div class="min-w-0">
+                    <div class="inline-flex items-center gap-2 text-[11px] font-semibold tracking-widest uppercase text-indigo-800/80 bg-indigo-100/70 px-2.5 py-0.5 rounded-full mb-1 whitespace-nowrap">
                         <span>LIVE DISPATCH</span>
                         <span>•</span>
                         <span>EVENT CALENDAR</span>
                     </div>
-                    <h1 class="text-xl md:text-2xl font-bold tracking-wide text-indigo-950">
+                    <h1 class="text-base sm:text-xl md:text-2xl font-bold tracking-wide text-indigo-950 whitespace-nowrap">
                         The Metal Scroll <span class="text-indigo-700/50 mx-1">|</span> <span class="text-indigo-900">金屬卷軸</span>
                     </h1>
                     <p class="text-sm text-slate-600 mt-0.5">全台金屬音樂演出行事曆</p>
                 </div>
             </div>
 
-            <div class="flex items-center space-x-2.5 bg-white/70 border border-indigo-900/15 px-3 py-2 rounded-xl">
-                <button type="button" onclick="changeMonth(-1)" class="px-3 py-1.5 bg-indigo-900/10 hover:bg-indigo-900/20 text-indigo-950 rounded-lg text-sm font-semibold transition">
+            <div class="flex items-center justify-between sm:justify-center gap-2 sm:gap-2.5 bg-white/70 border border-indigo-900/15 px-3 py-2 rounded-xl w-full sm:w-auto shrink-0">
+                <button type="button" onclick="changeMonth(-1)" class="px-3 py-1.5 bg-indigo-900/10 hover:bg-indigo-900/20 text-indigo-950 rounded-lg text-sm font-semibold transition whitespace-nowrap shrink-0">
                     &larr; 上個月
                 </button>
-                <h2 id="currentMonthTitle" class="text-base md:text-lg font-bold text-indigo-950 w-32 text-center">
+                <h2 id="currentMonthTitle" class="text-base md:text-lg font-bold text-indigo-950 w-24 sm:w-32 text-center whitespace-nowrap shrink-0">
                     2026年 11月
                 </h2>
-                <button type="button" onclick="changeMonth(1)" class="px-3 py-1.5 bg-indigo-900/10 hover:bg-indigo-900/20 text-indigo-950 rounded-lg text-sm font-semibold transition">
+                <button type="button" onclick="changeMonth(1)" class="px-3 py-1.5 bg-indigo-900/10 hover:bg-indigo-900/20 text-indigo-950 rounded-lg text-sm font-semibold transition whitespace-nowrap shrink-0">
                     下個月 &rarr;
                 </button>
             </div>
         </header>
 
         <main class="scroll-frame rounded-2xl p-5 md:p-7 overflow-visible">
-            <div class="desktop-calendar-view">
-                <div class="flex items-center justify-between text-xs text-indigo-950/65 mb-4 px-1">
-                    <span class="font-medium tracking-wide">▣ 滑鼠移至演出項目可查看完整資訊與售票連結</span>
-                </div>
-
-                <div class="grid grid-cols-7 gap-2 text-center font-bold text-xs md:text-sm mb-3">
-                    <div class="py-1.5 rounded-lg bg-indigo-900/10 text-indigo-900">日</div>
-                    <div class="py-1.5 rounded-lg bg-[#f4f1ea]/80 text-slate-600">一</div>
-                    <div class="py-1.5 rounded-lg bg-[#f4f1ea]/80 text-slate-600">二</div>
-                    <div class="py-1.5 rounded-lg bg-[#f4f1ea]/80 text-slate-600">三</div>
-                    <div class="py-1.5 rounded-lg bg-[#f4f1ea]/80 text-slate-600">四</div>
-                    <div class="py-1.5 rounded-lg bg-[#f4f1ea]/80 text-slate-600">五</div>
-                    <div class="py-1.5 rounded-lg bg-indigo-900/10 text-indigo-900">六</div>
-                </div>
-
-                <div id="calendarGrid" class="grid grid-cols-7 gap-2 overflow-visible"></div>
+            <div class="flex items-center justify-between text-xs text-indigo-950/65 mb-4 px-1">
+                <span class="hidden md:inline font-medium tracking-wide">▣ 滑鼠移至演出項目可查看完整資訊與售票連結</span>
+                <span class="md:hidden font-medium tracking-wide">▣ 點擊有標記的日期查看當日演出，或往下滑看本月完整列表</span>
             </div>
 
-            <section id="mobileEventAgenda" class="md:hidden">
+            <div class="grid grid-cols-7 gap-2 text-center font-bold text-xs md:text-sm mb-3">
+                <div class="py-1.5 rounded-lg bg-indigo-900/10 text-indigo-900">日</div>
+                <div class="py-1.5 rounded-lg bg-[#f4f1ea]/80 text-slate-600">一</div>
+                <div class="py-1.5 rounded-lg bg-[#f4f1ea]/80 text-slate-600">二</div>
+                <div class="py-1.5 rounded-lg bg-[#f4f1ea]/80 text-slate-600">三</div>
+                <div class="py-1.5 rounded-lg bg-[#f4f1ea]/80 text-slate-600">四</div>
+                <div class="py-1.5 rounded-lg bg-[#f4f1ea]/80 text-slate-600">五</div>
+                <div class="py-1.5 rounded-lg bg-indigo-900/10 text-indigo-900">六</div>
+            </div>
+
+            <div id="calendarGrid" class="grid grid-cols-7 gap-1.5 md:gap-2 overflow-visible"></div>
+
+            <section id="mobileEventAgenda" class="md:hidden mt-6 pt-5 border-t border-indigo-900/15">
                 <div class="flex items-center justify-between gap-2 mb-3">
                     <h3 id="mobileAgendaTitle" class="text-sm font-bold text-indigo-950">本月演出活動</h3>
+                    <button type="button" id="mobileShowAllBtn" onclick="selectMobileDate(null)" class="hidden text-xs font-semibold text-indigo-800 bg-indigo-100/80 px-2.5 py-1 rounded-lg">
+                        顯示整月活動
+                    </button>
                 </div>
                 <div id="mobileEventList" class="space-y-3"></div>
             </section>
@@ -163,6 +175,7 @@
         let currentYear = today.getFullYear();
         let currentMonth = today.getMonth();
         let eventsData = [];
+        let selectedMobileDate = null;
 
         function escapeHtml(str) {
             return String(str || '')
@@ -235,8 +248,14 @@
             renderMobileAgenda();
         }
 
+        function selectMobileDate(dateStr) {
+            selectedMobileDate = dateStr;
+            renderCalendar();
+        }
+
         function renderMobileAgenda() {
             const agendaTitleEl = document.getElementById('mobileAgendaTitle');
+            const showAllBtn = document.getElementById('mobileShowAllBtn');
             const listEl = document.getElementById('mobileEventList');
             if (!agendaTitleEl || !listEl) return;
 
@@ -252,17 +271,29 @@
                     return String(a.start_date || '').localeCompare(String(b.start_date || ''));
                 });
 
-            agendaTitleEl.textContent = currentYear + '年 ' + (currentMonth + 1) + '月演出列表（' + monthEvents.length + ' 場）';
+            const filteredEvents = selectedMobileDate
+                ? monthEvents.filter(function(ev) {
+                    return ev.start_date && String(ev.start_date).split('T')[0] === selectedMobileDate;
+                })
+                : monthEvents;
 
-            if (monthEvents.length === 0) {
+            if (selectedMobileDate) {
+                agendaTitleEl.textContent = selectedMobileDate + ' 演出活動（' + filteredEvents.length + '）';
+                if (showAllBtn) showAllBtn.classList.remove('hidden');
+            } else {
+                agendaTitleEl.textContent = (currentMonth + 1) + '月演出活動（' + filteredEvents.length + '）';
+                if (showAllBtn) showAllBtn.classList.add('hidden');
+            }
+
+            if (filteredEvents.length === 0) {
                 listEl.innerHTML =
                     '<div class="rounded-xl bg-white/80 border border-indigo-900/15 p-4 text-xs text-slate-500 text-center">' +
-                    '本月目前沒有已排定的演出活動。' +
+                    (selectedMobileDate ? '這一天目前沒有已排定的演出活動。' : '本月目前沒有已排定的演出活動。') +
                     '</div>';
                 return;
             }
 
-            listEl.innerHTML = monthEvents
+            listEl.innerHTML = filteredEvents
                 .map(function(ev) {
                     const title = escapeHtml(ev.title || '');
                     const lineupRaw = ev.lineup || '';
@@ -306,14 +337,23 @@
 
         function createCell(dayNum, isOtherMonth, dateStr) {
             const cell = document.createElement('div');
+            const isSelectedMobile = !isOtherMonth && dateStr && selectedMobileDate === dateStr;
             cell.className =
                 'day-cell min-h-[144px] rounded-xl p-2 flex flex-col justify-between overflow-visible ' +
-                (isOtherMonth ? 'other-month text-slate-400' : 'text-slate-700');
+                (isOtherMonth ? 'other-month text-slate-400' : 'text-slate-700') +
+                (isSelectedMobile ? ' selected-mobile-day' : '');
 
             let eventsHtml = '';
+            let dayEvents = [];
             if (!isOtherMonth && dateStr) {
-                const dayEvents = eventsData.filter(function(ev) {
+                dayEvents = eventsData.filter(function(ev) {
                     return ev.start_date && String(ev.start_date).split('T')[0] === dateStr;
+                });
+
+                cell.addEventListener('click', function() {
+                    if (window.innerWidth < 768) {
+                        selectMobileDate(selectedMobileDate === dateStr ? null : dateStr);
+                    }
                 });
 
                 dayEvents.forEach(function(ev) {
@@ -364,13 +404,26 @@
                 });
             }
 
+            const mobileIndicatorHtml =
+                !isOtherMonth && dayEvents.length > 0
+                    ? '<div class="md:hidden flex justify-center items-center gap-0.5 mt-1">' +
+                        '<span class="inline-block text-[10px] font-bold leading-none px-1.5 py-0.5 rounded-full bg-indigo-900 text-white">' +
+                            dayEvents.length +
+                        '</span>' +
+                      '</div>'
+                    : '';
+
             cell.innerHTML =
-                '<div class="text-right text-xs font-semibold mb-1 ' + (isOtherMonth ? 'text-slate-400' : 'text-indigo-950/75') + '">' + dayNum + '</div>' +
-                '<div class="space-y-1">' + eventsHtml + '</div>';
+                '<div>' +
+                    '<div class="text-right md:text-right text-center text-xs font-semibold mb-1 ' + (isOtherMonth ? 'text-slate-400' : 'text-indigo-950/75') + '">' + dayNum + '</div>' +
+                    mobileIndicatorHtml +
+                '</div>' +
+                '<div class="desktop-events space-y-1">' + eventsHtml + '</div>';
             return cell;
         }
 
         function changeMonth(direction) {
+            selectedMobileDate = null;
             currentMonth += direction;
             if (currentMonth > 11) {
                 currentMonth = 0;

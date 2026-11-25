@@ -80,9 +80,11 @@
             pointer-events: none;
         }
 
-        .event-item:hover .event-popover {
+        .event-item:hover .event-popover,
+        .event-popover:hover {
             opacity: 1;
             visibility: visible;
+            pointer-events: auto;
             transform: translateY(0);
         }
 
@@ -344,17 +346,19 @@
                                 '&#9672; ' + title +
                             '</a>' +
                             '<div class="flex flex-wrap gap-1">' + tagsHtml + '</div>' +
-                            '<div class="event-popover opacity-0 invisible translate-y-1 pointer-events-none hover:pointer-events-auto transition-all duration-150 absolute left-0 top-full mt-1.5 w-72 sm:w-80 bg-white/95 backdrop-blur-md border border-indigo-900/20 rounded-xl shadow-2xl p-4 z-50 text-left">' +
-                                '<div class="text-xs font-semibold text-indigo-800 mb-1">' + (county ? county + ' · ' : '') + venueName + '</div>' +
-                                '<div class="text-sm font-bold text-slate-900 leading-snug mb-2 break-words">' + title + '</div>' +
-                                '<div class="text-xs text-slate-500 mb-2.5">日期：' + startDisplay + (endDisplay && endDisplay !== dateStr ? ' ～ ' + endDisplay : '') + '</div>' +
-                                '<div class="mb-3">' +
-                                    '<div class="text-[11px] font-semibold text-slate-500 mb-1">演出陣容</div>' +
-                                    '<div class="flex flex-wrap gap-1.5">' + (popoverTagsHtml || ('<span class="text-xs text-slate-600">' + lineupEscaped + '</span>')) + '</div>' +
+                            '<div class="event-popover opacity-0 invisible translate-y-1 pointer-events-none transition-all duration-150 absolute left-0 top-full pt-2 w-72 sm:w-80 z-50 text-left">' +
+                                '<div class="bg-white/95 backdrop-blur-md border border-indigo-900/20 rounded-xl shadow-2xl p-4">' +
+                                    '<div class="text-xs font-semibold text-indigo-800 mb-1">' + (county ? county + ' · ' : '') + venueName + '</div>' +
+                                    '<div class="text-sm font-bold text-slate-900 leading-snug mb-2 break-words">' + title + '</div>' +
+                                    '<div class="text-xs text-slate-500 mb-2.5">日期：' + startDisplay + (endDisplay && endDisplay !== dateStr ? ' ～ ' + endDisplay : '') + '</div>' +
+                                    '<div class="mb-3">' +
+                                        '<div class="text-[11px] font-semibold text-slate-500 mb-1">演出陣容</div>' +
+                                        '<div class="flex flex-wrap gap-1.5">' + (popoverTagsHtml || ('<span class="text-xs text-slate-600">' + lineupEscaped + '</span>')) + '</div>' +
+                                    '</div>' +
+                                    (rawUrl !== '#'
+                                        ? '<a href="' + sourceUrl + '" target="_blank" rel="noopener noreferrer" class="inline-block w-full text-center bg-indigo-900 hover:bg-indigo-800 text-white text-xs font-semibold py-1.5 rounded-lg transition">前往售票 / 活動頁 &rarr;</a>'
+                                        : '') +
                                 '</div>' +
-                                (rawUrl !== '#'
-                                    ? '<a href="' + sourceUrl + '" target="_blank" rel="noopener noreferrer" class="inline-block w-full text-center bg-indigo-900 hover:bg-indigo-800 text-white text-xs font-semibold py-1.5 rounded-lg transition">前往售票 / 活動頁 &rarr;</a>'
-                                    : '') +
                             '</div>' +
                         '</div>';
                 });

@@ -86,7 +86,6 @@
             transform: translateY(0);
         }
 
-        /* 僅在手機版（小於 768px）調整格子高度與顯示模式，電腦版維持原樣 */
         @media (max-width: 767.98px) {
             .day-cell {
                 min-height: 54px;
@@ -109,11 +108,7 @@
     <div class="max-w-7xl mx-auto">
         <header class="glass-indigo-panel flex flex-col md:flex-row justify-between items-center mb-6 p-6 rounded-2xl shadow-sm gap-4">
             <div class="flex items-center gap-4">
-                <div class="hidden sm:flex flex-col items-center justify-center w-11 h-11 rounded-xl bg-indigo-900/10 border border-indigo-800/20 text-indigo-900 font-mono text-xs font-bold tracking-tighter select-none">
-                    <span>SCROLL</span>
-                    <span class="w-5 h-[1.5px] bg-indigo-800/40 my-0.5"></span>
-                    <span>2026</span>
-                </div>
+                <img src="logo_circle.png" alt="The Metal Scroll Logo" class="w-11 h-11 rounded-full object-cover border border-indigo-800/20 shrink-0" />
                 <div>
                     <div class="inline-flex items-center gap-2 text-[11px] font-semibold tracking-widest uppercase text-indigo-800/80 bg-indigo-100/70 px-2.5 py-0.5 rounded-full mb-1">
                         <span>LIVE DISPATCH</span>
@@ -144,9 +139,6 @@
             <div class="flex items-center justify-between text-xs text-indigo-950/65 mb-4 px-1">
                 <span class="hidden md:inline font-medium tracking-wide">▣ 滑鼠移至演出項目可查看完整資訊與售票連結</span>
                 <span class="md:hidden font-medium tracking-wide">▣ 點擊有標記的日期查看當日演出，或往下滑看本月完整列表</span>
-                <span class="hidden sm:inline font-mono text-[11px] bg-[#f4f1ea] border border-stone-300/70 px-2.5 py-0.5 rounded-md">
-                    INDIGO SHEER x RICE GREY
-                </span>
             </div>
 
             <div class="grid grid-cols-7 gap-2 text-center font-bold text-xs md:text-sm mb-3">
@@ -161,7 +153,6 @@
 
             <div id="calendarGrid" class="grid grid-cols-7 gap-1.5 md:gap-2 overflow-visible"></div>
 
-            <!-- 僅在手機版顯示的清晰活動列表區 -->
             <section id="mobileEventAgenda" class="md:hidden mt-6 pt-5 border-t border-indigo-900/15">
                 <div class="flex items-center justify-between gap-2 mb-3">
                     <h3 id="mobileAgendaTitle" class="text-sm font-bold text-indigo-950">本月演出活動</h3>

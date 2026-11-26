@@ -1,1 +1,184 @@
-sb_publishable_K7iIa_1ztydOrYUrO465DA_nqwN_K_6
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Metal Scroll | 金屬卷軸 — 活動審核後台</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body {
+            background-color: #eef0f7;
+            background-image:
+                radial-gradient(circle at 12% 10%, rgba(67, 56, 202, 0.14) 0%, transparent 42%),
+                radial-gradient(circle at 88% 18%, rgba(30, 58, 138, 0.12) 0%, transparent 45%),
+                linear-gradient(180deg, rgba(238, 240, 247, 0.92) 0%, rgba(244, 241, 234, 0.95) 100%);
+            color: #1e2538;
+        }
+
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.88);
+            border: 1px solid rgba(55, 48, 163, 0.18);
+        }
+    </style>
+</head>
+<body class="min-h-screen p-4 md:p-8">
+
+    <div class="max-w-6xl mx-auto">
+        <header class="glass-panel flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 p-6 rounded-2xl">
+            <div class="min-w-0">
+                <div class="inline-flex items-center gap-2 text-[11px] font-semibold tracking-widest uppercase text-indigo-800 bg-indigo-100/80 px-2.5 py-0.5 rounded-full mb-1.5 whitespace-nowrap">
+                    <span>ADMIN CONSOLE</span>
+                    <span>•</span>
+                    <span>REVIEW PORTAL</span>
+                </div>
+                <h1 class="text-lg sm:text-2xl font-bold tracking-wide text-indigo-950 whitespace-nowrap">
+                    The Metal Scroll <span class="text-indigo-700/50 mx-1">|</span> <span class="text-indigo-900">金屬卷軸</span>
+                </h1>
+                <p class="text-sm text-slate-600 mt-1">投稿活動審核與上線狀態管理</p>
+            </div>
+
+            <a href="https://themetalscrolltw.github.io/metal-scroll-calendar/" target="_blank" rel="noopener noreferrer" class="bg-indigo-900 hover:bg-indigo-800 text-white px-4 py-2.5 rounded-xl text-sm font-semibold transition whitespace-nowrap shrink-0">
+                查看公開活動月曆 &rarr;
+            </a>
+        </header>
+
+        <main class="glass-panel rounded-2xl p-5 sm:p-6">
+            <div class="flex items-center justify-between gap-2 mb-4">
+                <h2 class="text-base sm:text-lg font-bold text-indigo-950">投稿活動審核列表</h2>
+                <button type="button" onclick="fetchEvents()" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-indigo-900/10 hover:bg-indigo-900/20 text-indigo-950 transition cursor-pointer whitespace-nowrap">
+                    重新整理
+                </button>
+            </div>
+
+            <div id="loading" class="text-center py-8 text-slate-500 text-sm">載入中...</div>
+
+            <div class="overflow-x-auto">
+                <table id="eventTable" class="w-full text-left border-collapse hidden">
+                    <thead>
+                        <tr class="border-b border-indigo-900/15 text-slate-600 text-xs uppercase tracking-wider">
+                            <th class="py-3 px-3 sm:px-4">活動名稱</th>
+                            <th class="py-3 px-3 sm:px-4">演出陣容</th>
+                            <th class="py-3 px-3 sm:px-4">場地</th>
+                            <th class="py-3 px-3 sm:px-4">日期</th>
+                            <th class="py-3 px-3 sm:px-4">狀態</th>
+                            <th class="py-3 px-3 sm:px-4 text-center">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="eventList" class="divide-y divide-indigo-900/10 text-sm"></tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://ybbwdtndrnnvfkeiclji.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_K7iIa_1ztydOrYUrO465DA_nqwN_K_6';
+        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        function escapeHtml(str) {
+            return String(str || '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        function cleanLineupText(rawLineup) {
+            return String(rawLineup || '')
+                .replace(/\[TBD_START_TIME\]/g, '')
+                .replace(/\[TBD_END_TIME\]/g, '')
+                .replace(/\[END_TIME:\d{2}:\d{2}\]/g, '')
+                .replace(/尚未確定/g, '')
+                .trim();
+        }
+
+        async function fetchEvents() {
+            const listEl = document.getElementById('eventList');
+            const tableEl = document.getElementById('eventTable');
+            const loadingEl = document.getElementById('loading');
+
+            loadingEl.style.display = 'block';
+            loadingEl.className = 'text-center py-8 text-slate-500 text-sm';
+            loadingEl.textContent = '載入中...';
+            tableEl.classList.add('hidden');
+
+            try {
+                const { data, error } = await supabaseClient
+                    .from('mp_events')
+                    .select('*, mp_venues(name, county)')
+                    .order('start_date', { ascending: true });
+
+                if (error) throw error;
+
+                loadingEl.style.display = 'none';
+                tableEl.classList.remove('hidden');
+                listEl.innerHTML = '';
+
+                if (!data || data.length === 0) {
+                    listEl.innerHTML = '<tr><td colspan="6" class="text-center py-8 text-slate-500">目前沒有投稿活動</td></tr>';
+                    return;
+                }
+
+                data.forEach(function(ev) {
+                    const tr = document.createElement('tr');
+                    const isPublished = ev.status === 'published';
+                    const venueText = ev.mp_venues
+                        ? ((ev.mp_venues.county ? ev.mp_venues.county + ' · ' : '') + (ev.mp_venues.name || ''))
+                        : '未指定';
+                    const dateText = ev.start_date ? String(ev.start_date).split('T')[0] : '';
+                    const displayLineup = cleanLineupText(ev.lineup);
+
+                    tr.innerHTML =
+                        '<td class="py-3 px-3 sm:px-4 font-semibold text-indigo-950">' + escapeHtml(ev.title) + '</td>' +
+                        '<td class="py-3 px-3 sm:px-4 text-slate-700">' + escapeHtml(displayLineup) + '</td>' +
+                        '<td class="py-3 px-3 sm:px-4 text-slate-600">' + escapeHtml(venueText) + '</td>' +
+                        '<td class="py-3 px-3 sm:px-4 text-slate-600 whitespace-nowrap">' + escapeHtml(dateText) + '</td>' +
+                        '<td class="py-3 px-3 sm:px-4 whitespace-nowrap">' +
+                            '<span class="px-2.5 py-1 rounded-full text-xs font-semibold ' +
+                                (isPublished ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800') + '">' +
+                                (isPublished ? '已上線' : '審核中') +
+                            '</span>' +
+                        '</td>' +
+                        '<td class="py-3 px-3 sm:px-4 text-center whitespace-nowrap">' +
+                            '<button type="button" onclick="toggleStatus(\'' + escapeHtml(ev.id) + '\', \'' + escapeHtml(ev.status) + '\')" ' +
+                                'class="px-3 py-1.5 rounded-lg text-xs font-semibold text-white transition cursor-pointer ' +
+                                (isPublished ? 'bg-rose-600 hover:bg-rose-700' : 'bg-indigo-900 hover:bg-indigo-800') + '">' +
+                                (isPublished ? '下架' : '審核上線') +
+                            '</button>' +
+                        '</td>';
+                    listEl.appendChild(tr);
+                });
+            } catch (err) {
+                loadingEl.style.display = 'block';
+                loadingEl.className = 'text-center py-8 text-rose-700 text-sm font-medium';
+                loadingEl.textContent = '載入失敗：' + (err.message || err);
+            }
+        }
+
+        async function toggleStatus(id, currentStatus) {
+            const newStatus = currentStatus === 'published' ? 'pending' : 'published';
+            const { data, error } = await supabaseClient
+                .from('mp_events')
+                .update({ status: newStatus })
+                .eq('id', id)
+                .select('id');
+
+            if (error) {
+                alert('更新失敗：' + error.message + '\n\n若為權限不足，請至 Supabase SQL Editor 設定 mp_events 的 UPDATE 政策。');
+                return;
+            }
+
+            if (!data || data.length === 0) {
+                alert('狀態未變更（可能受 Supabase RLS 權限限制），請至 SQL Editor 確認 mp_events 的 UPDATE 政策。');
+                return;
+            }
+
+            fetchEvents();
+        }
+
+        fetchEvents();
+    </script>
+</body>
+</html>

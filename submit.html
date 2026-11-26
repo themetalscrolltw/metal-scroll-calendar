@@ -171,7 +171,8 @@
             const title = document.getElementById('title').value.trim();
             const lineup = document.getElementById('lineup').value.trim();
             const startDate = document.getElementById('start_date').value;
-            const endDate = document.getElementById('end_date').value || null;
+            const startDateOnly = startDate ? startDate.split('T')[0] : null;
+            const endDate = document.getElementById('end_date').value || startDateOnly;
             const county = document.getElementById('county').value.trim();
             const venueName = document.getElementById('venue').value.trim();
             const sourceUrl = document.getElementById('source_url').value.trim();

@@ -94,6 +94,7 @@
 
         #mobileWeekStrip {
             touch-action: pan-y;
+            will-change: transform;
         }
 
         @media (max-width: 767.98px) {
@@ -148,14 +149,14 @@
 
             <!-- 手機版一週一週制切換 + 快速跳轉 -->
             <div class="flex md:hidden flex-col gap-2 w-full">
-                <div class="flex items-center justify-between gap-1.5 bg-white/70 border border-indigo-900/15 px-2 py-1.5 rounded-xl w-full">
-                    <button type="button" id="prevWeekBtn" onclick="changeWeek(-1)" class="px-2 py-1 bg-white/90 hover:bg-white text-indigo-950 border border-indigo-900/15 rounded-lg text-xs font-semibold transition whitespace-nowrap shrink-0">
+                <div class="flex items-center justify-between gap-1 bg-white/80 border border-indigo-900/15 px-2 py-1.5 rounded-xl w-full overflow-hidden">
+                    <button type="button" id="prevWeekBtn" onclick="changeWeek(-1)" class="px-2 py-1 bg-indigo-900/10 hover:bg-indigo-900/20 text-indigo-950 rounded-lg text-xs font-semibold transition whitespace-nowrap shrink-0">
                         &larr; 上一週
                     </button>
-                    <span id="mobileWeekRangeTitle" class="text-xs font-bold text-indigo-950 text-center whitespace-nowrap px-1">
+                    <span id="mobileWeekRangeTitle" class="text-xs font-bold text-indigo-950 text-center whitespace-nowrap px-1 min-w-0 truncate">
                         本週區間
                     </span>
-                    <button type="button" id="nextWeekBtn" onclick="changeWeek(1)" class="px-2 py-1 bg-white/90 hover:bg-white text-indigo-950 border border-indigo-900/15 rounded-lg text-xs font-semibold transition whitespace-nowrap shrink-0">
+                    <button type="button" id="nextWeekBtn" onclick="changeWeek(1)" class="px-2 py-1 bg-indigo-900/10 hover:bg-indigo-900/20 text-indigo-950 rounded-lg text-xs font-semibold transition whitespace-nowrap shrink-0">
                         下一週 &rarr;
                     </button>
                 </div>
@@ -174,7 +175,7 @@
                     <input type="search" id="mobileSearchInput" oninput="handleMobileSearch(this.value)" placeholder="搜尋團名、活動名稱、場地或縣市..." class="w-full bg-white/85 border border-indigo-900/15 rounded-xl px-3 py-2 text-xs text-indigo-950 placeholder:text-slate-400 focus:outline-none focus:border-indigo-700" />
                 </div>
 
-                <div class="flex items-center justify-end gap-1.5 bg-white/70 border border-indigo-900/15 px-2.5 py-1.5 rounded-xl w-full">
+                <div class="flex items-center justify-end gap-1.5 px-1 py-0.5 w-full">
                     <button type="button" id="btnLangZhMobile" onclick="setLanguage('zh')" class="px-3 py-1 bg-indigo-900 text-white rounded-lg text-xs font-semibold transition whitespace-nowrap shrink-0 cursor-pointer">
                         中文
                     </button>
@@ -206,7 +207,7 @@
             </div>
 
             <!-- 手機版：當週日期列（左右滑動換週 + 點選單日顯示該日活動） -->
-            <section id="mobileWeeklyView" class="md:hidden">
+            <section id="mobileWeeklyView" class="md:hidden overflow-hidden">
                 <div id="mobileWeekStrip" class="grid grid-cols-7 gap-1 mb-4 select-none"></div>
 
                 <div class="flex items-center justify-between gap-2 mb-3">
@@ -555,6 +556,46 @@
             renderMobileWeeklyView();
         }
 
+        function buildWeekStripHtml(weekStartObj, activeDateStr, isWholeWeekMode, showEventBadges) {
+            const t = TEXTS[currentLang];
+            const weekNames = t.weekdays;
+            const weekDates = [];
+            for (let i = 0; i < 7; i++) {
+                weekDates.push(new Date(
+                    weekStartObj.getFullYear(),
+                    weekStartObj.getMonth(),
+                    weekStartObj.getDate() + i
+                ));
+            }
+
+            return weekDates.map(function(dObj, idx) {
+                const dStr = formatDateStr(dObj);
+                const dayCount = showEventBadges
+                    ? eventsData.filter(function(ev) {
+                        return ev.start_date && String(ev.start_date).split('T')[0] === dStr;
+                    }).length
+                    : 0;
+                const isSelected = !isWholeWeekMode && dStr === activeDateStr;
+
+                return (
+                    '<button type="button" onclick="selectMobileDay(\'' + dStr + '\')" ' +
+                        'class="flex flex-col items-center py-2 px-1 rounded-xl border transition cursor-pointer ' +
+                        (isSelected
+                            ? 'bg-indigo-900 text-white border-indigo-950 shadow-sm'
+                            : ('bg-white/85 text-slate-700 ' + (dayCount > 0 ? 'border-indigo-900/25' : 'border-indigo-900/15'))) +
+                    '">' +
+                        '<span class="text-[11px] font-medium ' + (isSelected ? 'text-indigo-100' : 'text-slate-500') + '">' + weekNames[idx] + '</span>' +
+                        '<span class="text-xs font-bold mt-0.5 ' + (isSelected ? 'text-white' : 'text-indigo-950') + '">' + dObj.getDate() + '</span>' +
+                        '<span class="mt-1 h-4 flex items-center justify-center">' +
+                            (dayCount > 0
+                                ? '<span class="text-[10px] font-bold px-1.5 py-0.5 rounded-full ' + (isSelected ? 'bg-white text-indigo-950' : 'bg-indigo-900 text-white') + '">' + dayCount + '</span>'
+                                : '<span class="w-1 h-1 rounded-full bg-transparent"></span>') +
+                        '</span>' +
+                    '</button>'
+                );
+            }).join('');
+        }
+
         function renderMobileWeeklyView() {
             const t = TEXTS[currentLang];
             const rangeTitleEl = document.getElementById('mobileWeekRangeTitle');
@@ -565,7 +606,9 @@
             const listEl = document.getElementById('mobileWeeklyEventList');
             if (!rangeTitleEl || !stripEl || !agendaTitleEl || !listEl) return;
 
-            const weekNames = t.weekdays;
+            stripEl.style.transition = '';
+            stripEl.style.transform = '';
+
             const weekDates = [];
             for (let i = 0; i < 7; i++) {
                 weekDates.push(new Date(
@@ -627,30 +670,7 @@
             }
             if (clearSearchBtn) clearSearchBtn.classList.add('hidden');
 
-            stripEl.innerHTML = weekDates.map(function(dObj, idx) {
-                const dStr = formatDateStr(dObj);
-                const dayCount = eventsData.filter(function(ev) {
-                    return ev.start_date && String(ev.start_date).split('T')[0] === dStr;
-                }).length;
-                const isSelected = !mobileShowWholeWeek && dStr === selectedMobileDateStr;
-
-                return (
-                    '<button type="button" onclick="selectMobileDay(\'' + dStr + '\')" ' +
-                        'class="flex flex-col items-center py-2 px-1 rounded-xl border transition cursor-pointer ' +
-                        (isSelected
-                            ? 'bg-indigo-900 text-white border-indigo-950 shadow-sm'
-                            : ('bg-white/85 text-slate-700 ' + (dayCount > 0 ? 'border-indigo-900/25' : 'border-indigo-900/15'))) +
-                    '">' +
-                        '<span class="text-[11px] font-medium ' + (isSelected ? 'text-indigo-100' : 'text-slate-500') + '">' + weekNames[idx] + '</span>' +
-                        '<span class="text-xs font-bold mt-0.5 ' + (isSelected ? 'text-white' : 'text-indigo-950') + '">' + dObj.getDate() + '</span>' +
-                        '<span class="mt-1 h-4 flex items-center justify-center">' +
-                            (dayCount > 0
-                                ? '<span class="text-[10px] font-bold px-1.5 py-0.5 rounded-full ' + (isSelected ? 'bg-white text-indigo-950' : 'bg-indigo-900 text-white') + '">' + dayCount + '</span>'
-                                : '<span class="w-1 h-1 rounded-full bg-transparent"></span>') +
-                        '</span>' +
-                    '</button>'
-                );
-            }).join('');
+            stripEl.innerHTML = buildWeekStripHtml(currentWeekStart, selectedMobileDateStr, mobileShowWholeWeek, true);
 
             if (mobileShowWholeWeek) {
                 const weekEvents = eventsData
@@ -840,21 +860,60 @@
         }
 
         let mobileSwipeStartX = 0;
+        let mobileSwipeCurrentX = 0;
+        let isMobileSwiping = false;
+        let previewDirection = 0;
         const mobileStripEl = document.getElementById('mobileWeekStrip');
         if (mobileStripEl) {
             mobileStripEl.addEventListener('touchstart', function(e) {
                 mobileSwipeStartX = e.changedTouches[0].screenX;
+                mobileSwipeCurrentX = mobileSwipeStartX;
+                isMobileSwiping = true;
+                previewDirection = 0;
+                mobileStripEl.style.transition = 'none';
+            }, { passive: true });
+
+            mobileStripEl.addEventListener('touchmove', function(e) {
+                if (!isMobileSwiping) return;
+                mobileSwipeCurrentX = e.changedTouches[0].screenX;
+                const diffX = mobileSwipeCurrentX - mobileSwipeStartX;
+                const clampedDiff = Math.max(-140, Math.min(140, diffX));
+                mobileStripEl.style.transform = 'translateX(' + clampedDiff + 'px)';
+
+                const nextDir = diffX < -24 ? 1 : (diffX > 24 ? -1 : 0);
+                if (nextDir !== previewDirection) {
+                    previewDirection = nextDir;
+                    if (nextDir === 0) {
+                        mobileStripEl.innerHTML = buildWeekStripHtml(currentWeekStart, selectedMobileDateStr, mobileShowWholeWeek, true);
+                    } else {
+                        const previewWeekStart = new Date(
+                            currentWeekStart.getFullYear(),
+                            currentWeekStart.getMonth(),
+                            currentWeekStart.getDate() + nextDir * 7
+                        );
+                        mobileStripEl.innerHTML = buildWeekStripHtml(previewWeekStart, '', false, false);
+                    }
+                }
             }, { passive: true });
 
             mobileStripEl.addEventListener('touchend', function(e) {
+                if (!isMobileSwiping) return;
+                isMobileSwiping = false;
                 const diffX = e.changedTouches[0].screenX - mobileSwipeStartX;
-                if (Math.abs(diffX) > 45) {
-                    if (diffX < 0) {
-                        changeWeek(1);
+                mobileStripEl.style.transition = 'transform 180ms ease-out';
+                mobileStripEl.style.transform = 'translateX(0px)';
+
+                setTimeout(function() {
+                    if (Math.abs(diffX) > 45) {
+                        if (diffX < 0) {
+                            changeWeek(1);
+                        } else {
+                            changeWeek(-1);
+                        }
                     } else {
-                        changeWeek(-1);
+                        renderMobileWeeklyView();
                     }
-                }
+                }, 140);
             }, { passive: true });
         }
 

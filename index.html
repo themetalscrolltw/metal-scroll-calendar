@@ -27,7 +27,6 @@
 <body class="min-h-screen p-3 sm:p-6 md:p-8">
 
     <div class="max-w-6xl mx-auto">
-        <!-- 頂部品牌與中英文切換 -->
         <header class="glass-panel rounded-2xl p-5 sm:p-6 mb-5 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div>
                 <div class="inline-flex items-center gap-2 text-[11px] font-semibold tracking-widest uppercase text-indigo-800 bg-indigo-100/80 px-2.5 py-0.5 rounded-full mb-1.5">
@@ -40,7 +39,6 @@
             </div>
 
             <div class="flex flex-wrap items-center gap-2.5 w-full md:w-auto justify-between md:justify-end">
-                <!-- 中英文切換按鈕 -->
                 <div class="inline-flex rounded-xl bg-indigo-950/10 p-1" role="group">
                     <button type="button" id="langZhBtn" onclick="setLang('zh')"
                         class="px-3 py-1.5 rounded-lg text-xs font-bold bg-indigo-900 text-white transition cursor-pointer">
@@ -59,7 +57,6 @@
             </div>
         </header>
 
-        <!-- 控制列：月份／日期導覽與縣市篩選 -->
         <section class="glass-panel rounded-2xl p-4 sm:p-5 mb-5 flex flex-wrap items-center justify-between gap-3">
             <div class="flex items-center gap-2">
                 <button type="button" onclick="navigatePrev()" class="px-3 py-1.5 rounded-xl bg-indigo-900/10 hover:bg-indigo-900/20 text-indigo-950 text-xs font-bold cursor-pointer">&larr;</button>
@@ -88,11 +85,11 @@
             </div>
         </section>
 
-        <!-- 手機版：可左右滑動的週日期列 + 單日活動明細 -->
+        <!-- 手機版：週日期列左右滑動 + 點選單日顯示該日活動 -->
         <section class="md:hidden space-y-4">
             <div id="mobileWeekStrip" class="glass-panel rounded-2xl p-4 select-none">
                 <div class="flex items-center justify-between mb-2">
-                    <span id="swipeHintText" class="text-[11px] text-slate-500">👈 左右滑動切換上／下一週，點選日期查看當日活動</span>
+                    <span id="swipeHintText" class="text-[11px] text-slate-500">左右滑動切換上／下一週，點選日期查看該日活動</span>
                     <button type="button" id="showWholeWeekBtn" onclick="selectWholeWeek()" class="text-[11px] font-bold text-indigo-800 underline cursor-pointer">
                         顯示整週
                     </button>
@@ -109,11 +106,26 @@
             </div>
         </section>
 
-        <!-- 電腦版：完整月曆網格 -->
+        <!-- 電腦版：月曆網格（可點選或游標移至活動看完整資訊） -->
         <section class="hidden md:block glass-panel rounded-2xl p-5">
             <div id="desktopWeekHeaders" class="grid grid-cols-7 gap-2 text-center text-xs font-bold text-slate-600 pb-3 border-b border-indigo-900/10"></div>
             <div id="desktopMonthGrid" class="grid grid-cols-7 gap-2 pt-3"></div>
         </section>
+    </div>
+
+    <!-- 電腦版活動詳細資訊 Modal -->
+    <div id="eventDetailModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4" onclick="closeDetailModal(event)">
+        <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-xl border border-indigo-900/20 space-y-3" onclick="event.stopPropagation()">
+            <div class="flex items-start justify-between gap-3">
+                <h3 id="detailTitle" class="text-lg font-bold text-indigo-950"></h3>
+                <button type="button" onclick="closeDetailModal()" class="text-slate-400 hover:text-slate-700 text-xl font-bold cursor-pointer leading-none">&times;</button>
+            </div>
+            <div id="detailMeta" class="text-xs font-semibold text-indigo-800"></div>
+            <div id="detailLineup" class="text-sm text-slate-700 whitespace-pre-line bg-slate-50 p-3.5 rounded-xl border border-slate-200/80"></div>
+            <div id="detailSourceWrap" class="hidden pt-1">
+                <a id="detailSourceLink" href="#" target="_blank" rel="noopener noreferrer" class="text-xs font-bold text-indigo-800 underline"></a>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -133,12 +145,13 @@
                 submitBtn: '+ 投稿活動情報',
                 today: '今天',
                 allCounties: '全部縣市',
-                swipeHint: '👈 左右滑動切換上／下一週，點選日期查看當日活動',
+                swipeHint: '左右滑動切換上／下一週，點選日期查看該日活動',
                 showWholeWeek: '顯示整週',
                 wholeWeekTitle: '本週全部演出活動',
-                noEventsDay: '這天目前沒有已登錄的演出活動',
-                noEventsWeek: '本週目前沒有已登錄的演出活動',
+                noEventsDay: '這天目前沒有演出活動',
+                noEventsWeek: '本週目前沒有演出活動',
                 timeTbd: '時間未定',
+                linkLabel: '查看活動連結',
                 weekdays: ['日', '一', '二', '三', '四', '五', '六'],
                 counties: {
                     '台北市': '台北市', '新北市': '新北市', '桃園市': '桃園市', '新竹市': '新竹市',
@@ -151,12 +164,13 @@
                 submitBtn: '+ Submit Event',
                 today: 'Today',
                 allCounties: 'All Cities',
-                swipeHint: '👈 Swipe left/right for prev/next week, tap a day for gigs',
+                swipeHint: 'Swipe left/right for prev/next week, tap a day for gigs',
                 showWholeWeek: 'Whole Week',
                 wholeWeekTitle: 'All Gigs This Week',
-                noEventsDay: 'No scheduled gigs on this date.',
-                noEventsWeek: 'No scheduled gigs this week.',
+                noEventsDay: 'No gigs on this date.',
+                noEventsWeek: 'No gigs this week.',
                 timeTbd: 'Time TBD',
+                linkLabel: 'Event Link',
                 weekdays: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
                 counties: {
                     '台北市': 'Taipei', '新北市': 'New Taipei', '桃園市': 'Taoyuan', '新竹市': 'Hsinchu',
@@ -300,6 +314,43 @@
             renderView();
         }
 
+        function openEventDetail(eventId) {
+            const ev = publishedEvents.find(item => String(item.id) === String(eventId));
+            if (!ev) return;
+
+            const t = I18N[lang];
+            const dateStr = ev.start_date ? String(ev.start_date).slice(0, 10) : '';
+            const timeStr = formatEventTime(ev);
+            const venueStr = formatVenue(ev);
+            const lineupClean = cleanLineupText(ev.lineup);
+
+            document.getElementById('detailTitle').textContent = ev.title || '';
+            document.getElementById('detailMeta').textContent =
+                [dateStr, timeStr, venueStr].filter(Boolean).join('  |  ');
+            document.getElementById('detailLineup').textContent = lineupClean;
+
+            const sourceWrap = document.getElementById('detailSourceWrap');
+            const sourceLink = document.getElementById('detailSourceLink');
+            const url = ev.mp_event_sources && ev.mp_event_sources.length > 0 ? ev.mp_event_sources[0].source_url : '';
+            if (url) {
+                sourceWrap.classList.remove('hidden');
+                sourceLink.href = url;
+                sourceLink.textContent = t.linkLabel + ' →';
+            } else {
+                sourceWrap.classList.add('hidden');
+            }
+
+            const modal = document.getElementById('eventDetailModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeDetailModal() {
+            const modal = document.getElementById('eventDetailModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
         function renderView() {
             const t = I18N[lang];
             const filtered = getFilteredEvents();
@@ -313,7 +364,7 @@
                 document.getElementById('currentPeriodLabel').textContent = monthNames[month] + ' ' + year;
             }
 
-            // 1. 渲染電腦版月曆
+            // 電腦版月曆：點擊開啟完整資訊，游標懸停顯示完整資訊
             const weekHeadersEl = document.getElementById('desktopWeekHeaders');
             weekHeadersEl.innerHTML = t.weekdays.map(w => '<div>' + w + '</div>').join('');
 
@@ -335,12 +386,20 @@
                 const dayEvents = eventsOnDate(dStr, filtered);
                 const isToday = dStr === todayStr;
 
-                const eventsHtml = dayEvents.map(ev =>
-                    '<div class="p-1.5 rounded-lg bg-indigo-900/10 border-l-2 border-indigo-800 text-[11px] leading-snug">' +
+                const eventsHtml = dayEvents.map(ev => {
+                    const fullHoverText = [
+                        ev.title || '',
+                        formatEventTime(ev),
+                        formatVenue(ev),
+                        cleanLineupText(ev.lineup)
+                    ].filter(Boolean).join('\n');
+
+                    return '<button type="button" onclick="openEventDetail(\'' + escapeHtml(ev.id) + '\')" title="' + escapeHtml(fullHoverText) + '" ' +
+                        'class="w-full text-left p-1.5 rounded-lg bg-indigo-900/10 hover:bg-indigo-900/20 border-l-2 border-indigo-800 text-[11px] leading-snug transition cursor-pointer">' +
                         '<div class="font-bold text-indigo-950 truncate">' + escapeHtml(ev.title) + '</div>' +
                         '<div class="text-slate-600 truncate">' + escapeHtml(formatEventTime(ev) + ' ' + formatVenue(ev)) + '</div>' +
-                    '</div>'
-                ).join('');
+                    '</button>';
+                }).join('');
 
                 monthGridEl.innerHTML +=
                     '<div class="min-h-[110px] p-2 rounded-xl border ' + (isToday ? 'border-indigo-700 bg-indigo-50/60' : 'border-indigo-900/10 bg-white/80') + ' flex flex-col gap-1">' +
@@ -349,7 +408,7 @@
                     '</div>';
             }
 
-            // 2. 渲染手機版週日期列與單日活動明細
+            // 手機版週日曆：左右滑動切換上／下一週，點選日期看該日活動
             const weekStart = getWeekStart(anchorDate);
             const mobileWeekDaysEl = document.getElementById('mobileWeekDays');
             mobileWeekDaysEl.innerHTML = '';
@@ -410,7 +469,6 @@
             }
         }
 
-        // 手機版左右滑動切換上／下一週手勢
         let touchStartX = 0;
         const weekStrip = document.getElementById('mobileWeekStrip');
         weekStrip.addEventListener('touchstart', function(e) {
@@ -421,9 +479,9 @@
             const diffX = e.changedTouches[0].screenX - touchStartX;
             if (Math.abs(diffX) > 45) {
                 if (diffX < 0) {
-                    navigateNext(); // 往左滑：下一週
+                    navigateNext();
                 } else {
-                    navigatePrev(); // 往右滑：上一週
+                    navigatePrev();
                 }
             }
         }, { passive: true });
@@ -431,7 +489,7 @@
         async function loadPublishedEvents() {
             const { data, error } = await supabaseClient
                 .from('mp_events')
-                .select('*, mp_venues(name, county)')
+                .select('*, mp_venues(name, county), mp_event_sources(source_url)')
                 .eq('status', 'published')
                 .order('start_date', { ascending: true });
 

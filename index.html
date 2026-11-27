@@ -148,14 +148,14 @@
 
             <!-- 手機版一週一週制切換 + 快速跳轉 -->
             <div class="flex md:hidden flex-col gap-2 w-full">
-                <div class="flex items-center justify-between gap-2 bg-white/70 border border-indigo-900/15 px-2.5 py-2 rounded-xl w-full">
-                    <button type="button" id="prevWeekBtn" onclick="changeWeek(-1)" class="px-2.5 py-1.5 bg-indigo-900/10 hover:bg-indigo-900/20 text-indigo-950 rounded-lg text-xs font-semibold transition whitespace-nowrap shrink-0">
+                <div class="flex items-center justify-between gap-1.5 bg-white/70 border border-indigo-900/15 px-2 py-1.5 rounded-xl w-full">
+                    <button type="button" id="prevWeekBtn" onclick="changeWeek(-1)" class="px-2 py-1 bg-white/90 hover:bg-white text-indigo-950 border border-indigo-900/15 rounded-lg text-xs font-semibold transition whitespace-nowrap shrink-0">
                         &larr; 上一週
                     </button>
                     <span id="mobileWeekRangeTitle" class="text-xs font-bold text-indigo-950 text-center whitespace-nowrap px-1">
                         本週區間
                     </span>
-                    <button type="button" id="nextWeekBtn" onclick="changeWeek(1)" class="px-2.5 py-1.5 bg-indigo-900/10 hover:bg-indigo-900/20 text-indigo-950 rounded-lg text-xs font-semibold transition whitespace-nowrap shrink-0">
+                    <button type="button" id="nextWeekBtn" onclick="changeWeek(1)" class="px-2 py-1 bg-white/90 hover:bg-white text-indigo-950 border border-indigo-900/15 rounded-lg text-xs font-semibold transition whitespace-nowrap shrink-0">
                         下一週 &rarr;
                     </button>
                 </div>
@@ -294,6 +294,7 @@
 
         function setLanguage(lang) {
             currentLang = lang;
+            document.documentElement.lang = lang === 'en' ? 'en' : 'zh-TW';
             const pairs = [
                 [document.getElementById('btnLangZh'), document.getElementById('btnLangEn')],
                 [document.getElementById('btnLangZhMobile'), document.getElementById('btnLangEnMobile')]

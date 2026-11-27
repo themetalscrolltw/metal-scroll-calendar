@@ -232,7 +232,6 @@
         let currentMonth = nowInit.getMonth();
         let eventsData = [];
         let isFetchingEvents = false;
-        let lastFetchTimestamp = 0;
 
         let currentLang = 'zh';
         let currentWeekStart = getSundayOfWeek(new Date());
@@ -487,18 +486,14 @@
 
                 if (error) throw error;
                 eventsData = data || [];
-                lastFetchTimestamp = Date.now();
             } catch (err) {
                 console.error('載入活動失敗:', err);
                 eventsData = [];
             }
         }
 
-        async function refreshEventsAndRender(force) {
+        async function refreshEventsAndRender() {
             if (isFetchingEvents) return;
-            if (!force && lastFetchTimestamp && (Date.now() - lastFetchTimestamp < 5000)) {
-                return;
-            }
             isFetchingEvents = true;
             try {
                 await fetchEvents();
@@ -947,13 +942,13 @@
 
         document.addEventListener('visibilitychange', function() {
             if (document.visibilityState === 'visible') {
-                refreshEventsAndRender(true);
+                refreshEventsAndRender();
             }
         });
 
         document.addEventListener('DOMContentLoaded', async function() {
             renderCalendar();
-            await refreshEventsAndRender(true);
+            await refreshEventsAndRender();
         });
     </script>
 </body>

@@ -118,27 +118,28 @@
                 </div>
             </div>
 
-            <!-- 月曆上方中／英文切換按鈕 -->
-            <div class="flex items-center gap-2 bg-white/70 border border-indigo-900/15 px-3 py-2 rounded-xl shrink-0">
-                <button type="button" id="btnLangZh" onclick="setLanguage('zh')" class="px-3 py-1.5 bg-indigo-900 text-white rounded-lg text-xs sm:text-sm font-semibold transition whitespace-nowrap shrink-0 cursor-pointer">
-                    中文
-                </button>
-                <button type="button" id="btnLangEn" onclick="setLanguage('en')" class="px-3 py-1.5 bg-indigo-900/10 hover:bg-indigo-900/20 text-indigo-950 rounded-lg text-xs sm:text-sm font-semibold transition whitespace-nowrap shrink-0 cursor-pointer">
-                    英文版
-                </button>
-            </div>
+            <!-- 電腦版月份切換 + 中／英文切換（放在上個月／下個月下方） -->
+            <div class="hidden md:flex flex-col items-end gap-2 shrink-0">
+                <div class="flex items-center space-x-2.5 bg-white/70 border border-indigo-900/15 px-3 py-2 rounded-xl shrink-0">
+                    <button type="button" id="prevMonthBtn" onclick="changeMonth(-1)" class="px-3 py-1.5 bg-indigo-900/10 hover:bg-indigo-900/20 text-indigo-950 rounded-lg text-sm font-semibold transition whitespace-nowrap shrink-0">
+                        &larr; 上個月
+                    </button>
+                    <h2 id="currentMonthTitle" class="text-base md:text-lg font-bold text-indigo-950 w-32 text-center whitespace-nowrap shrink-0">
+                        2026年 11月
+                    </h2>
+                    <button type="button" id="nextMonthBtn" onclick="changeMonth(1)" class="px-3 py-1.5 bg-indigo-900/10 hover:bg-indigo-900/20 text-indigo-950 rounded-lg text-sm font-semibold transition whitespace-nowrap shrink-0">
+                        下個月 &rarr;
+                    </button>
+                </div>
 
-            <!-- 電腦版月份切換 -->
-            <div class="hidden md:flex items-center space-x-2.5 bg-white/70 border border-indigo-900/15 px-3 py-2 rounded-xl shrink-0">
-                <button type="button" id="prevMonthBtn" onclick="changeMonth(-1)" class="px-3 py-1.5 bg-indigo-900/10 hover:bg-indigo-900/20 text-indigo-950 rounded-lg text-sm font-semibold transition whitespace-nowrap shrink-0">
-                    &larr; 上個月
-                </button>
-                <h2 id="currentMonthTitle" class="text-base md:text-lg font-bold text-indigo-950 w-32 text-center whitespace-nowrap shrink-0">
-                    2026年 11月
-                </h2>
-                <button type="button" id="nextMonthBtn" onclick="changeMonth(1)" class="px-3 py-1.5 bg-indigo-900/10 hover:bg-indigo-900/20 text-indigo-950 rounded-lg text-sm font-semibold transition whitespace-nowrap shrink-0">
-                    下個月 &rarr;
-                </button>
+                <div class="flex items-center gap-1.5 bg-white/70 border border-indigo-900/15 px-2.5 py-1.5 rounded-xl shrink-0">
+                    <button type="button" id="btnLangZh" onclick="setLanguage('zh')" class="px-3 py-1 bg-indigo-900 text-white rounded-lg text-xs font-semibold transition whitespace-nowrap shrink-0 cursor-pointer">
+                        中文
+                    </button>
+                    <button type="button" id="btnLangEn" onclick="setLanguage('en')" class="px-3 py-1 bg-indigo-900/10 hover:bg-indigo-900/20 text-indigo-950 rounded-lg text-xs font-semibold transition whitespace-nowrap shrink-0 cursor-pointer">
+                        English
+                    </button>
+                </div>
             </div>
 
             <!-- 手機版一週一週制切換 + 快速跳轉 -->
@@ -167,6 +168,15 @@
 
                 <div class="relative w-full">
                     <input type="search" id="mobileSearchInput" oninput="handleMobileSearch(this.value)" placeholder="搜尋團名、活動名稱、場地或縣市..." class="w-full bg-white/85 border border-indigo-900/15 rounded-xl px-3 py-2 text-xs text-indigo-950 placeholder:text-slate-400 focus:outline-none focus:border-indigo-700" />
+                </div>
+
+                <div class="flex items-center justify-end gap-1.5 bg-white/70 border border-indigo-900/15 px-2.5 py-1.5 rounded-xl w-full">
+                    <button type="button" id="btnLangZhMobile" onclick="setLanguage('zh')" class="px-3 py-1 bg-indigo-900 text-white rounded-lg text-xs font-semibold transition whitespace-nowrap shrink-0 cursor-pointer">
+                        中文
+                    </button>
+                    <button type="button" id="btnLangEnMobile" onclick="setLanguage('en')" class="px-3 py-1 bg-indigo-900/10 hover:bg-indigo-900/20 text-indigo-950 rounded-lg text-xs font-semibold transition whitespace-nowrap shrink-0 cursor-pointer">
+                        English
+                    </button>
                 </div>
             </div>
         </header>
@@ -278,17 +288,22 @@
 
         function setLanguage(lang) {
             currentLang = lang;
-            const zhBtn = document.getElementById('btnLangZh');
-            const enBtn = document.getElementById('btnLangEn');
-            if (zhBtn && enBtn) {
+            const pairs = [
+                [document.getElementById('btnLangZh'), document.getElementById('btnLangEn')],
+                [document.getElementById('btnLangZhMobile'), document.getElementById('btnLangEnMobile')]
+            ];
+            pairs.forEach(function(pair) {
+                const zhBtn = pair[0];
+                const enBtn = pair[1];
+                if (!zhBtn || !enBtn) return;
                 if (lang === 'zh') {
-                    zhBtn.className = 'px-3 py-1.5 bg-indigo-900 text-white rounded-lg text-xs sm:text-sm font-semibold transition whitespace-nowrap shrink-0 cursor-pointer';
-                    enBtn.className = 'px-3 py-1.5 bg-indigo-900/10 hover:bg-indigo-900/20 text-indigo-950 rounded-lg text-xs sm:text-sm font-semibold transition whitespace-nowrap shrink-0 cursor-pointer';
+                    zhBtn.className = 'px-3 py-1 bg-indigo-900 text-white rounded-lg text-xs font-semibold transition whitespace-nowrap shrink-0 cursor-pointer';
+                    enBtn.className = 'px-3 py-1 bg-indigo-900/10 hover:bg-indigo-900/20 text-indigo-950 rounded-lg text-xs font-semibold transition whitespace-nowrap shrink-0 cursor-pointer';
                 } else {
-                    enBtn.className = 'px-3 py-1.5 bg-indigo-900 text-white rounded-lg text-xs sm:text-sm font-semibold transition whitespace-nowrap shrink-0 cursor-pointer';
-                    zhBtn.className = 'px-3 py-1.5 bg-indigo-900/10 hover:bg-indigo-900/20 text-indigo-950 rounded-lg text-xs sm:text-sm font-semibold transition whitespace-nowrap shrink-0 cursor-pointer';
+                    enBtn.className = 'px-3 py-1 bg-indigo-900 text-white rounded-lg text-xs font-semibold transition whitespace-nowrap shrink-0 cursor-pointer';
+                    zhBtn.className = 'px-3 py-1 bg-indigo-900/10 hover:bg-indigo-900/20 text-indigo-950 rounded-lg text-xs font-semibold transition whitespace-nowrap shrink-0 cursor-pointer';
                 }
-            }
+            });
             applyLanguageTexts();
             renderCalendar();
         }

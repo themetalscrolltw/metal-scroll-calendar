@@ -32,7 +32,7 @@
                 <h1 class="text-xl sm:text-2xl font-bold text-indigo-950">
                     The Metal Scroll <span class="text-indigo-700/50 mx-1">|</span> <span class="text-indigo-900">金屬卷軸</span>
                 </h1>
-                <p class="text-sm text-slate-600 mt-1">金屬／搖滾演出活動情報投稿表單</p>
+                <p class="text-sm text-slate-600 mt-1">活動投稿表單</p>
             </div>
             <a href="https://themetalscrolltw.github.io/metal-scroll-calendar/" class="text-xs font-semibold bg-indigo-900/10 hover:bg-indigo-900/20 text-indigo-950 px-3.5 py-2 rounded-xl transition whitespace-nowrap">
                 &larr; 返回活動月曆
@@ -42,13 +42,13 @@
         <form id="submitForm" class="glass-panel rounded-2xl p-6 space-y-5">
             <div>
                 <label class="block text-sm font-bold text-indigo-950 mb-1.5">活動名稱 <span class="text-rose-600">*</span></label>
-                <input type="text" id="title" required placeholder="例如：2026 台灣金屬祭 / 專場名稱"
+                <input type="text" id="title" required placeholder="請輸入活動名稱"
                     class="w-full px-3.5 py-2.5 rounded-xl border border-indigo-900/20 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-700 text-sm">
             </div>
 
             <div>
-                <label class="block text-sm font-bold text-indigo-950 mb-1.5">演出陣容 / 活動簡介 <span class="text-rose-600">*</span></label>
-                <textarea id="lineup" rows="3" required placeholder="請填寫參演樂團、票價或活動簡述"
+                <label class="block text-sm font-bold text-indigo-950 mb-1.5">演出陣容 <span class="text-rose-600">*</span></label>
+                <textarea id="lineup" rows="3" required placeholder="請輸入演出陣容"
                     class="w-full px-3.5 py-2.5 rounded-xl border border-indigo-900/20 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-700 text-sm"></textarea>
             </div>
 
@@ -72,7 +72,7 @@
                 </div>
                 <div>
                     <label class="block text-sm font-bold text-indigo-950 mb-1.5">演出場地 <span class="text-rose-600">*</span></label>
-                    <input type="text" id="venueName" required placeholder="例如：Legacy Taipei / LIVE WAREHOUSE"
+                    <input type="text" id="venueName" required placeholder="請輸入演出場地"
                         class="w-full px-3.5 py-2.5 rounded-xl border border-indigo-900/20 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-700 text-sm">
                 </div>
             </div>
@@ -91,14 +91,14 @@
                             <span>尚未確定</span>
                         </label>
                     </div>
-                    <input type="time" id="startTime" value="19:00"
+                    <input type="time" id="startTime"
                         class="w-full px-3.5 py-2.5 rounded-xl border border-indigo-900/20 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-700 text-sm">
                 </div>
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                    <label class="block text-sm font-bold text-indigo-950 mb-1.5">結束日期（單日活動可留空）</label>
+                    <label class="block text-sm font-bold text-indigo-950 mb-1.5">結束日期</label>
                     <input type="date" id="endDate"
                         class="w-full px-3.5 py-2.5 rounded-xl border border-indigo-900/20 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-700 text-sm">
                 </div>
@@ -106,32 +106,31 @@
                     <div class="flex items-center justify-between mb-1.5">
                         <label class="text-sm font-bold text-indigo-950">結束時間</label>
                         <label class="inline-flex items-center gap-1.5 text-xs text-slate-600 cursor-pointer">
-                            <input type="checkbox" id="tbdEndTime" checked class="rounded text-indigo-800">
+                            <input type="checkbox" id="tbdEndTime" class="rounded text-indigo-800">
                             <span>尚未確定</span>
                         </label>
                     </div>
-                    <input type="time" id="endTime" disabled
-                        class="w-full px-3.5 py-2.5 rounded-xl border border-indigo-900/20 bg-slate-100 text-slate-400 focus:outline-none text-sm">
+                    <input type="time" id="endTime"
+                        class="w-full px-3.5 py-2.5 rounded-xl border border-indigo-900/20 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-700 text-sm">
                 </div>
             </div>
 
             <div>
-                <label class="block text-sm font-bold text-indigo-950 mb-1.5">活動售票／資訊連結（選填）</label>
+                <label class="block text-sm font-bold text-indigo-950 mb-1.5">活動連結（選填）</label>
                 <input type="url" id="sourceUrl" placeholder="https://..."
                     class="w-full px-3.5 py-2.5 rounded-xl border border-indigo-900/20 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-700 text-sm">
             </div>
 
             <div class="pt-3 border-t border-indigo-900/15 space-y-4">
-                <p class="text-xs font-semibold text-indigo-800">投稿人聯絡資訊（供審核核對來源，不會直接公開於月曆）</p>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-sm font-bold text-indigo-950 mb-1.5">投稿人是誰（主辦／樂團／樂迷名稱） <span class="text-rose-600">*</span></label>
-                        <input type="text" id="submitterName" required placeholder="例如：主辦單位名稱 / 樂團 / 個人暱稱"
+                        <label class="block text-sm font-bold text-indigo-950 mb-1.5">投稿人是誰（主辦／樂團名稱） <span class="text-rose-600">*</span></label>
+                        <input type="text" id="submitterName" required placeholder="請輸入主辦或樂團名稱"
                             class="w-full px-3.5 py-2.5 rounded-xl border border-indigo-900/20 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-700 text-sm">
                     </div>
                     <div>
-                        <label class="block text-sm font-bold text-indigo-950 mb-1.5">IG 帳號或社群官網連結 <span class="text-rose-600">*</span></label>
-                        <input type="text" id="submitterSocial" required placeholder="例如：@themetalscrolltw 或 https://instagram.com/..."
+                        <label class="block text-sm font-bold text-indigo-950 mb-1.5">社群官方 IG <span class="text-rose-600">*</span></label>
+                        <input type="text" id="submitterSocial" required placeholder="@..."
                             class="w-full px-3.5 py-2.5 rounded-xl border border-indigo-900/20 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-700 text-sm">
                     </div>
                 </div>
@@ -139,7 +138,7 @@
 
             <button type="submit" id="submitBtn"
                 class="w-full py-3 rounded-xl bg-indigo-900 hover:bg-indigo-800 text-white font-bold text-sm transition cursor-pointer shadow-sm">
-                送出活動投稿（待審核）
+                送出投稿
             </button>
         </form>
     </div>
@@ -170,7 +169,7 @@
             e.preventDefault();
             const btn = document.getElementById('submitBtn');
             btn.disabled = true;
-            btn.textContent = '資料送出中...';
+            btn.textContent = '送出中...';
 
             try {
                 const title = document.getElementById('title').value.trim();
@@ -196,7 +195,6 @@
                     lineup += ' [END_TIME:' + endTimeEl.value + ']';
                 }
 
-                // 1. 尋找或建立場地
                 let venueId = null;
                 const { data: existingVenues } = await supabaseClient
                     .from('mp_venues')
@@ -217,7 +215,6 @@
                     venueId = newVenue.id;
                 }
 
-                // 2. 寫入活動資料（預設 status = pending）
                 const startIso = startDate + 'T' + timePart + '+08:00';
                 const { data: newEvent, error: eventErr } = await supabaseClient
                     .from('mp_events')
@@ -236,22 +233,23 @@
 
                 if (eventErr) throw eventErr;
 
-                // 3. 若有填寫活動連結則寫入 mp_event_sources
                 if (sourceUrl && newEvent && newEvent.id) {
                     await supabaseClient
                         .from('mp_event_sources')
                         .insert([{ event_id: newEvent.id, source_url: sourceUrl }]);
                 }
 
-                alert('投稿成功！我們已收到您的活動資訊，審核通過後將會顯示於活動月曆上。');
+                alert('投稿成功！');
                 document.getElementById('submitForm').reset();
-                tbdEndEl.checked = true;
-                endTimeEl.disabled = true;
+                startTimeEl.disabled = false;
+                startTimeEl.classList.remove('bg-slate-100', 'text-slate-400');
+                endTimeEl.disabled = false;
+                endTimeEl.classList.remove('bg-slate-100', 'text-slate-400');
             } catch (err) {
                 alert('送出失敗：' + (err.message || err));
             } finally {
                 btn.disabled = false;
-                btn.textContent = '送出活動投稿（待審核）';
+                btn.textContent = '送出投稿';
             }
         });
     </script>

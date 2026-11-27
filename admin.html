@@ -162,19 +162,12 @@
 
         function parseStartDateParts(rawStart) {
             if (!rawStart) return { date: '', time: '' };
-            const str = String(rawStart).trim();
-            const d = new Date(str);
-            if (!isNaN(d.getTime()) && (str.includes('T') || str.includes('+') || str.endsWith('Z'))) {
-                return {
-                    date: d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate()),
-                    time: pad2(d.getHours()) + ':' + pad2(d.getMinutes())
-                };
-            }
-            const normalized = str.replace('T', ' ');
-            const parts = normalized.split(' ');
+            const normalized = String(rawStart).trim().replace('T', ' ');
+            const dateMatch = normalized.match(/^(\d{4}-\d{2}-\d{2})/);
+            const timeMatch = normalized.match(/(?:\s|^)(\d{2}:\d{2})/);
             return {
-                date: (parts[0] || '').slice(0, 10),
-                time: (parts[1] || '').slice(0, 5)
+                date: dateMatch ? dateMatch[1] : '',
+                time: timeMatch ? timeMatch[1] : ''
             };
         }
 
@@ -244,6 +237,7 @@
                     ? ((ev.mp_venues.county ? ev.mp_venues.county + ' · ' : '') + (ev.mp_venues.name || ''))
                     : '未指定場地';
                 const startParts = parseStartDateParts(ev.start_date);
+                const endDateText = ev.end_date ? String(ev.end_date).slice(0, 10) : '';
                 const startDateText = startParts.date ? (startParts.date + (startParts.time ? ' ' + startParts.time : '')) : '';
                 const hasTbdStart = String(ev.lineup || '').includes('[TBD_START_TIME]');
                 const submittedAt = formatExactTimestamp(ev.created_at);
@@ -284,152 +278,7 @@
                         '<p class="text-sm text-slate-700 whitespace-pre-line">' + escapeHtml(cleanLineupText(ev.lineup)) + '</p>' +
                         '<div class="text-xs text-slate-600 flex flex-wrap gap-x-4 gap-y-1 pt-1">' +
                             '<span>場地：' + escapeHtml(venueText) + '</span>' +
-                            '<span>時間：' + escapeHtml(hasTbdStart ? startParts.date + '（時間尚未確定）' : startDateText) + '</span>' +
+                            '<span>開始：' + escapeHtml(hasTbdStart ? startParts.date + '（時間尚未確定）' : startDateText) + '</span>' +
+                            (endDateText ? '<span>結束：' + escapeHtml(endDateText) + '</span>' : '') +
                         '</div>' +
-                        '<div class="text-xs text-slate-500 bg-slate-50 px-3 py-2 rounded-lg border border-slate-200/80 flex flex-wrap gap-x-4 gap-y-1 mt-2">' +
-                            '<span>投稿人：<strong>' + escapeHtml(ev.submitter_name || '未填寫') + '</strong></span>' +
-                            '<span>社群官方 IG：' + socialHtml + '</span>' +
-                            '<span>投稿時間：' + escapeHtml(submittedAt) + '</span>' +
-                        '</div>' +
-                    '</div>' +
-                    '<div class="flex lg:flex-col justify-end items-stretch sm:items-center lg:items-end gap-2 shrink-0">' +
-                        actionsHtml +
-                    '</div>';
-
-                container.appendChild(card);
-            });
-        }
-
-        async function updateStatus(id, newStatus) {
-            const { error } = await supabaseClient
-                .from('mp_events')
-                .update({ status: newStatus })
-                .eq('id', id);
-
-            if (error) {
-                alert('操作失敗：' + error.message);
-                return;
-            }
-            await fetchEvents();
-        }
-
-        async function moveToTrash(id) {
-            if (!confirm('確定要將這筆活動移至垃圾桶嗎？')) return;
-            await updateStatus(id, 'deleted');
-        }
-
-        async function permanentDelete(id) {
-            if (!confirm('確定要永久刪除嗎？')) return;
-            const { error } = await supabaseClient
-                .from('mp_events')
-                .delete()
-                .eq('id', id);
-
-            if (error) {
-                alert('刪除失敗：' + error.message);
-                return;
-            }
-            await fetchEvents();
-        }
-
-        function openEditModal(id) {
-            const ev = allEvents.find(item => String(item.id) === String(id));
-            if (!ev) return;
-
-            document.getElementById('editId').value = ev.id;
-            document.getElementById('editTitle').value = ev.title || '';
-            document.getElementById('editLineup').value = cleanLineupText(ev.lineup);
-
-            const rawLineup = String(ev.lineup || '');
-            const isTbdStart = rawLineup.includes('[TBD_START_TIME]');
-            const isTbdEnd = rawLineup.includes('[TBD_END_TIME]');
-            const endTimeMatch = rawLineup.match(/\[END_TIME:(\d{2}:\d{2})\]/);
-
-            const startParts = parseStartDateParts(ev.start_date);
-            document.getElementById('editStartDate').value = startParts.date;
-            document.getElementById('editTbdStart').checked = isTbdStart;
-            document.getElementById('editStartTime').value = !isTbdStart ? startParts.time : '';
-
-            document.getElementById('editEndDate').value = ev.end_date ? String(ev.end_date).slice(0, 10) : startParts.date;
-            document.getElementById('editTbdEnd').checked = isTbdEnd;
-            document.getElementById('editEndTime').value = endTimeMatch ? endTimeMatch[1] : '';
-
-            document.getElementById('editSubmitterName').value = ev.submitter_name || '';
-            document.getElementById('editSubmitterSocial').value = ev.submitter_social || '';
-
-            const modal = document.getElementById('editModal');
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-        }
-
-        function closeEditModal() {
-            const modal = document.getElementById('editModal');
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
-        }
-
-        document.getElementById('editForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            const saveBtn = document.getElementById('saveEditBtn');
-            saveBtn.disabled = true;
-
-            try {
-                const id = document.getElementById('editId').value;
-                const title = document.getElementById('editTitle').value.trim();
-                let lineup = document.getElementById('editLineup').value.trim();
-                const startDate = document.getElementById('editStartDate').value;
-                const tbdStart = document.getElementById('editTbdStart').checked;
-                const startTime = document.getElementById('editStartTime').value;
-                const endDate = document.getElementById('editEndDate').value || startDate;
-                const tbdEnd = document.getElementById('editTbdEnd').checked;
-                const endTime = document.getElementById('editEndTime').value;
-                const submitterName = document.getElementById('editSubmitterName').value.trim();
-                const submitterSocial = document.getElementById('editSubmitterSocial').value.trim();
-
-                let timePart = '00:00:00';
-                if (tbdStart) {
-                    lineup += ' [TBD_START_TIME]';
-                } else if (startTime) {
-                    timePart = startTime + ':00';
-                }
-
-                if (tbdEnd) {
-                    lineup += ' [TBD_END_TIME]';
-                } else if (endTime) {
-                    lineup += ' [END_TIME:' + endTime + ']';
-                }
-
-                const { data, error } = await supabaseClient
-                    .from('mp_events')
-                    .update({
-                        title: title,
-                        lineup: lineup,
-                        start_date: startDate + 'T' + timePart + '+08:00',
-                        end_date: endDate,
-                        submitter_name: submitterName,
-                        submitter_social: submitterSocial
-                    })
-                    .eq('id', id)
-                    .select('id');
-
-                if (error) {
-                    alert('更新失敗：' + error.message);
-                    return;
-                }
-
-                if (!data || data.length === 0) {
-                    alert('更新未生效（可能是資料庫權限政策限制，或找不到該筆資料）。');
-                    return;
-                }
-
-                closeEditModal();
-                await fetchEvents();
-            } finally {
-                saveBtn.disabled = false;
-            }
-        });
-
-        fetchEvents();
-    </script>
-</body>
-</html>
+                        '<div class="text-xs text-

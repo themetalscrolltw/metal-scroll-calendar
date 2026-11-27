@@ -122,7 +122,6 @@
                 </div>
             </div>
 
-            <!-- 電腦版月份切換 + 中／英文切換（放在上個月／下個月下方） -->
             <div class="hidden md:flex flex-col items-end gap-2 shrink-0">
                 <div class="flex items-center space-x-2.5 bg-white/70 border border-indigo-900/15 px-3 py-2 rounded-xl shrink-0">
                     <button type="button" id="prevMonthBtn" onclick="changeMonth(-1)" class="px-3 py-1.5 bg-indigo-900/10 hover:bg-indigo-900/20 text-indigo-950 rounded-lg text-sm font-semibold transition whitespace-nowrap shrink-0">
@@ -146,7 +145,6 @@
                 </div>
             </div>
 
-            <!-- 手機版一週一週制切換 + 快速跳轉 -->
             <div class="flex md:hidden flex-col gap-2 w-full">
                 <div class="flex items-center justify-between gap-1 bg-white/80 border border-indigo-900/15 px-2 py-1.5 rounded-xl w-full overflow-hidden">
                     <button type="button" id="prevWeekBtn" onclick="changeWeek(-1)" class="px-2 py-1 bg-indigo-900/10 hover:bg-indigo-900/20 text-indigo-950 rounded-lg text-xs font-semibold transition whitespace-nowrap shrink-0">
@@ -186,7 +184,6 @@
         </header>
 
         <main class="scroll-frame rounded-2xl p-5 md:p-7 overflow-visible">
-            <!-- 電腦版月曆網格 -->
             <div class="desktop-calendar-view">
                 <div class="flex items-center justify-between text-xs text-indigo-950/65 mb-4 px-1">
                     <span id="desktopHintText" class="font-medium tracking-wide">▣ 滑鼠移至演出項目可查看完整資訊與售票連結</span>
@@ -205,7 +202,6 @@
                 <div id="calendarGrid" class="grid grid-cols-7 gap-2 overflow-visible"></div>
             </div>
 
-            <!-- 手機版：當週日期列（左右滑動換週 + 點選單日顯示該日活動） -->
             <section id="mobileWeeklyView" class="md:hidden overflow-hidden">
                 <div id="mobileWeekStrip" class="grid grid-cols-7 gap-1 mb-4 select-none"></div>
 
@@ -235,6 +231,8 @@
         let currentYear = today.getFullYear();
         let currentMonth = today.getMonth();
         let eventsData = [];
+        let isFetchingEvents = false;
+        let lastFetchTimestamp = 0;
 
         let currentLang = 'zh';
         let currentWeekStart = getSundayOfWeek(new Date());
@@ -429,15 +427,35 @@
                 .filter(Boolean);
         }
 
+        function getEventLocalDatePart(rawStart) {
+            if (!rawStart) return '';
+            const str = String(rawStart).trim();
+            const d = new Date(str);
+            if (!isNaN(d.getTime()) && (str.includes('T') || str.includes('+') || str.endsWith('Z'))) {
+                return formatDateStr(d);
+            }
+            return str.replace('T', ' ').split(' ')[0].slice(0, 10);
+        }
+
+        function getEventLocalTimePart(rawStart) {
+            if (!rawStart) return '';
+            const str = String(rawStart).trim();
+            const d = new Date(str);
+            if (!isNaN(d.getTime()) && (str.includes('T') || str.includes('+') || str.endsWith('Z'))) {
+                return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+            }
+            const parts = str.replace('T', ' ').split(' ');
+            return (parts[1] || '').slice(0, 5);
+        }
+
         function formatEventDateDisplay(ev) {
             const rawLineup = String(ev.lineup || '');
             const hasStartTbd = rawLineup.includes('[TBD_START_TIME]');
             const hasEndTbd = rawLineup.includes('[TBD_END_TIME]');
             const endTimeMatch = rawLineup.match(/\[END_TIME:(\d{2}:\d{2})\]/);
 
-            const startFull = String(ev.start_date || '').replace('T', ' ');
-            const startDatePart = startFull.split(' ')[0] || '';
-            const startTimePart = hasStartTbd ? '' : (startFull.split(' ')[1] ? startFull.split(' ')[1].slice(0, 5) : '');
+            const startDatePart = getEventLocalDatePart(ev.start_date);
+            const startTimePart = hasStartTbd ? '' : getEventLocalTimePart(ev.start_date);
 
             const startText = startDatePart
                 ? (startTimePart ? startDatePart + ' ' + startTimePart : startDatePart)
@@ -479,15 +497,25 @@
 
                 if (error) throw error;
                 eventsData = data || [];
+                lastFetchTimestamp = Date.now();
             } catch (err) {
                 console.error('載入活動失敗:', err);
                 eventsData = [];
             }
         }
 
-        async function refreshEventsAndRender() {
-            await fetchEvents();
-            renderCalendar();
+        async function refreshEventsAndRender(force) {
+            if (isFetchingEvents) return;
+            if (!force && lastFetchTimestamp && (Date.now() - lastFetchTimestamp < 10000)) {
+                return;
+            }
+            isFetchingEvents = true;
+            try {
+                await fetchEvents();
+                renderCalendar();
+            } finally {
+                isFetchingEvents = false;
+            }
         }
 
         function renderCalendar() {
@@ -623,7 +651,7 @@
                 const dStr = formatDateStr(dObj);
                 const dayCount = showEventBadges
                     ? eventsData.filter(function(ev) {
-                        return ev.start_date && String(ev.start_date).split('T')[0] === dStr;
+                        return ev.start_date && getEventLocalDatePart(ev.start_date) === dStr;
                     }).length
                     : 0;
                 const isSelected = !isWholeWeekMode && dStr === activeDateStr;
@@ -722,7 +750,7 @@
                 const weekEvents = eventsData
                     .filter(function(ev) {
                         if (!ev.start_date) return false;
-                        const evDate = String(ev.start_date).split('T')[0];
+                        const evDate = getEventLocalDatePart(ev.start_date);
                         return weekDateStrSet.has(evDate);
                     })
                     .sort(compareEventsByStartTime);
@@ -747,7 +775,7 @@
 
             const dayEvents = eventsData
                 .filter(function(ev) {
-                    return ev.start_date && String(ev.start_date).split('T')[0] === selectedMobileDateStr;
+                    return ev.start_date && getEventLocalDatePart(ev.start_date) === selectedMobileDateStr;
                 })
                 .sort(compareEventsByStartTime);
 
@@ -779,7 +807,7 @@
             const rawUrl = (ev.mp_event_sources && ev.mp_event_sources[0] && ev.mp_event_sources[0].source_url) || '#';
             const sourceUrl = escapeHtml(rawUrl);
             const dateDisplay = escapeHtml(formatEventDateDisplay(ev));
-            const startDatePart = ev.start_date ? String(ev.start_date).split('T')[0] : '';
+            const startDatePart = getEventLocalDatePart(ev.start_date);
 
             const tagsHtml = bands
                 .map(function(band) {
@@ -824,7 +852,7 @@
             if (!isOtherMonth && dateStr) {
                 const dayEvents = eventsData
                     .filter(function(ev) {
-                        return ev.start_date && String(ev.start_date).split('T')[0] === dateStr;
+                        return ev.start_date && getEventLocalDatePart(ev.start_date) === dateStr;
                     })
                     .sort(compareEventsByStartTime);
 
@@ -929,18 +957,13 @@
 
         document.addEventListener('visibilitychange', function() {
             if (document.visibilityState === 'visible') {
-                refreshEventsAndRender();
+                refreshEventsAndRender(false);
             }
-        });
-
-        window.addEventListener('focus', function() {
-            refreshEventsAndRender();
         });
 
         document.addEventListener('DOMContentLoaded', async function() {
             renderCalendar();
-            await refreshEventsAndRender();
-            setInterval(refreshEventsAndRender, 60000);
+            await refreshEventsAndRender(true);
         });
     </script>
 </body>

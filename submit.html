@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Metal Scroll | 金屬卷軸 — 活動投稿</title>
+    <title>The Metal Scroll | 金屬卷軸 — 主辦活動自主投稿</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
@@ -15,130 +15,156 @@
                 linear-gradient(180deg, rgba(238, 240, 247, 0.92) 0%, rgba(244, 241, 234, 0.95) 100%);
             color: #1e2538;
         }
-        .glass-panel {
-            background: rgba(255, 255, 255, 0.9);
-            border: 1px solid rgba(55, 48, 163, 0.18);
+
+        .scroll-card {
+            position: relative;
+            background: linear-gradient(145deg, rgba(255, 255, 255, 0.90) 0%, rgba(224, 231, 255, 0.45) 100%);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(55, 48, 163, 0.2);
+            box-shadow: 0 16px 40px -18px rgba(30, 41, 59, 0.24);
+        }
+
+        .scroll-card::before,
+        .scroll-card::after {
+            content: "";
+            position: absolute;
+            top: 22px;
+            bottom: 22px;
+            width: 5px;
+            border-radius: 999px;
+            background: linear-gradient(
+                180deg,
+                rgba(55, 48, 163, 0.45) 0%,
+                rgba(180, 172, 154, 0.55) 50%,
+                rgba(55, 48, 163, 0.45) 100%
+            );
+            pointer-events: none;
+        }
+
+        .scroll-card::before { left: 10px; }
+        .scroll-card::after { right: 10px; }
+
+        .form-input {
+            background: rgba(255, 255, 255, 0.85);
+            border: 1px solid rgba(67, 56, 202, 0.2);
+            transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+        }
+
+        .form-input:focus {
+            outline: none;
+            background: #ffffff;
+            border-color: #3730a3;
+            box-shadow: 0 0 0 3px rgba(67, 56, 202, 0.14);
         }
     </style>
 </head>
-<body class="min-h-screen p-4 md:p-8">
+<body class="min-h-screen flex items-center justify-center p-4 md:p-8">
 
-    <div class="max-w-2xl mx-auto">
-        <header class="glass-panel rounded-2xl p-6 mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-            <div>
-                <div class="inline-flex items-center gap-2 text-[11px] font-semibold tracking-widest uppercase text-indigo-800 bg-indigo-100/80 px-2.5 py-0.5 rounded-full mb-1.5">
+    <div class="scroll-card w-full max-w-2xl rounded-2xl p-6 sm:p-10">
+        <!-- 頂部品牌標題與返回月曆按鈕 -->
+        <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-3 pb-6 mb-6 border-b border-indigo-900/15">
+            <div class="min-w-0">
+                <div class="inline-flex items-center gap-2 text-[11px] font-semibold tracking-widest uppercase text-indigo-800/85 bg-indigo-100/75 px-2.5 py-0.5 rounded-full mb-2 whitespace-nowrap">
                     <span>EVENT SUBMISSION</span>
+                    <span>•</span>
+                    <span>ORGANIZER PORTAL</span>
                 </div>
-                <h1 class="text-xl sm:text-2xl font-bold text-indigo-950">
-                    The Metal Scroll <span class="text-indigo-700/50 mx-1">|</span> <span class="text-indigo-900">金屬卷軸</span>
+                <h1 class="text-lg sm:text-2xl font-bold tracking-wide text-indigo-950 whitespace-nowrap">
+                    The Metal Scroll <span class="text-indigo-700/45 mx-1">|</span> <span class="text-indigo-900">金屬卷軸</span>
                 </h1>
-                <p class="text-sm text-slate-600 mt-1">活動投稿表單</p>
+                <p class="text-sm text-slate-600 mt-1">金屬音樂活動主辦自主投稿表單</p>
             </div>
-            <a href="https://themetalscrolltw.github.io/metal-scroll-calendar/" class="text-xs font-semibold bg-indigo-900/10 hover:bg-indigo-900/20 text-indigo-950 px-3.5 py-2 rounded-xl transition whitespace-nowrap">
-                &larr; 返回活動月曆
+
+            <a href="./index.html" class="self-start inline-flex items-center gap-1.5 text-xs font-semibold text-indigo-900 bg-white/80 hover:bg-indigo-900/10 border border-indigo-900/20 px-3 py-2 rounded-xl transition shrink-0 whitespace-nowrap">
+                <span>&larr;</span>
+                <span>返回活動月曆</span>
             </a>
-        </header>
+        </div>
 
-        <form id="submitForm" class="glass-panel rounded-2xl p-6 space-y-5">
+        <!-- 投稿表單 -->
+        <form id="submitForm" class="space-y-5">
             <div>
-                <label class="block text-sm font-bold text-indigo-950 mb-1.5">活動名稱 <span class="text-rose-600">*</span></label>
-                <input type="text" id="title" required placeholder="請輸入活動名稱"
-                    class="w-full px-3.5 py-2.5 rounded-xl border border-indigo-900/20 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-700 text-sm">
+                <label for="title" class="block text-sm font-bold text-indigo-950 mb-1.5">
+                    活動名稱 <span class="text-indigo-600">*</span>
+                </label>
+                <input type="text" id="title" required placeholder="例：大港開唱" class="form-input w-full rounded-xl px-4 py-2.5 text-sm text-slate-800 placeholder-slate-400">
             </div>
 
             <div>
-                <label class="block text-sm font-bold text-indigo-950 mb-1.5">演出陣容 <span class="text-rose-600">*</span></label>
-                <textarea id="lineup" rows="3" required placeholder="請輸入演出陣容"
-                    class="w-full px-3.5 py-2.5 rounded-xl border border-indigo-900/20 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-700 text-sm"></textarea>
+                <label for="lineup" class="block text-sm font-bold text-indigo-950 mb-1.5">
+                    演出陣容 (樂團名稱) <span class="text-indigo-600">*</span>
+                </label>
+                <input type="text" id="lineup" required placeholder="例：血肉果汁機, 閃靈" class="form-input w-full rounded-xl px-4 py-2.5 text-sm text-slate-800 placeholder-slate-400">
+                <p class="text-[11px] text-slate-500 mt-1">多個樂團請以逗號（,）分隔，月曆將自動轉為樂團標籤顯示。</p>
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <!-- 開始日期與時間 -->
                 <div>
-                    <label class="block text-sm font-bold text-indigo-950 mb-1.5">縣市 <span class="text-rose-600">*</span></label>
-                    <select id="county" required class="w-full px-3.5 py-2.5 rounded-xl border border-indigo-900/20 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-700 text-sm">
-                        <option value="台北市">台北市</option>
-                        <option value="新北市">新北市</option>
-                        <option value="桃園市">桃園市</option>
-                        <option value="新竹市">新竹市</option>
-                        <option value="台中市">台中市</option>
-                        <option value="台南市">台南市</option>
-                        <option value="高雄市">高雄市</option>
-                        <option value="屏東縣">屏東縣</option>
-                        <option value="宜蘭縣">宜蘭縣</option>
-                        <option value="花蓮縣">花蓮縣</option>
-                        <option value="台東縣">台東縣</option>
-                        <option value="其他">其他</option>
-                    </select>
+                    <label for="start_date" class="block text-sm font-bold text-indigo-950 mb-1.5">
+                        開始日期與時間 <span class="text-indigo-600">*</span>
+                    </label>
+                    <input type="datetime-local" id="start_date" required class="form-input w-full rounded-xl px-4 py-2.5 text-sm text-slate-800">
+                    <label class="mt-2 inline-flex items-center gap-2 text-xs text-slate-700 cursor-pointer select-none">
+                        <input type="checkbox" id="start_time_tbd" class="rounded border-indigo-400 text-indigo-900 focus:ring-indigo-500">
+                        <span>開始時間尚未確定</span>
+                    </label>
                 </div>
-                <div>
-                    <label class="block text-sm font-bold text-indigo-950 mb-1.5">演出場地 <span class="text-rose-600">*</span></label>
-                    <input type="text" id="venueName" required placeholder="請輸入演出場地"
-                        class="w-full px-3.5 py-2.5 rounded-xl border border-indigo-900/20 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-700 text-sm">
-                </div>
-            </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <!-- 結束日期與時間 -->
                 <div>
-                    <label class="block text-sm font-bold text-indigo-950 mb-1.5">開始日期 <span class="text-rose-600">*</span></label>
-                    <input type="date" id="startDate" required
-                        class="w-full px-3.5 py-2.5 rounded-xl border border-indigo-900/20 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-700 text-sm">
-                </div>
-                <div>
-                    <div class="flex items-center justify-between mb-1.5">
-                        <label class="text-sm font-bold text-indigo-950">開始時間</label>
-                        <label class="inline-flex items-center gap-1.5 text-xs text-slate-600 cursor-pointer">
-                            <input type="checkbox" id="tbdStartTime" class="rounded text-indigo-800">
-                            <span>尚未確定</span>
-                        </label>
-                    </div>
-                    <input type="time" id="startTime"
-                        class="w-full px-3.5 py-2.5 rounded-xl border border-indigo-900/20 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-700 text-sm">
+                    <label for="end_date" class="block text-sm font-bold text-indigo-950 mb-1.5">
+                        結束日期與時間 <span class="text-xs font-normal text-slate-500">(*單日可不填)</span>
+                    </label>
+                    <input type="datetime-local" id="end_date" class="form-input w-full rounded-xl px-4 py-2.5 text-sm text-slate-800">
+                    <label class="mt-2 inline-flex items-center gap-2 text-xs text-slate-700 cursor-pointer select-none">
+                        <input type="checkbox" id="end_time_tbd" class="rounded border-indigo-400 text-indigo-900 focus:ring-indigo-500">
+                        <span>結束時間尚未確定</span>
+                    </label>
                 </div>
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                    <label class="block text-sm font-bold text-indigo-950 mb-1.5">結束日期</label>
-                    <input type="date" id="endDate"
-                        class="w-full px-3.5 py-2.5 rounded-xl border border-indigo-900/20 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-700 text-sm">
+                    <label for="county" class="block text-sm font-bold text-indigo-950 mb-1.5">
+                        城市 <span class="text-indigo-600">*</span>
+                    </label>
+                    <input type="text" id="county" required placeholder="例：台北市" class="form-input w-full rounded-xl px-4 py-2.5 text-sm text-slate-800 placeholder-slate-400">
                 </div>
                 <div>
-                    <div class="flex items-center justify-between mb-1.5">
-                        <label class="text-sm font-bold text-indigo-950">結束時間</label>
-                        <label class="inline-flex items-center gap-1.5 text-xs text-slate-600 cursor-pointer">
-                            <input type="checkbox" id="tbdEndTime" class="rounded text-indigo-800">
-                            <span>尚未確定</span>
-                        </label>
-                    </div>
-                    <input type="time" id="endTime"
-                        class="w-full px-3.5 py-2.5 rounded-xl border border-indigo-900/20 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-700 text-sm">
+                    <label for="venue" class="block text-sm font-bold text-indigo-950 mb-1.5">
+                        場地名稱 <span class="text-indigo-600">*</span>
+                    </label>
+                    <input type="text" id="venue" required placeholder="例：Legacy Taipei" class="form-input w-full rounded-xl px-4 py-2.5 text-sm text-slate-800 placeholder-slate-400">
                 </div>
             </div>
 
             <div>
-                <label class="block text-sm font-bold text-indigo-950 mb-1.5">活動連結（選填）</label>
-                <input type="url" id="sourceUrl" placeholder="https://..."
-                    class="w-full px-3.5 py-2.5 rounded-xl border border-indigo-900/20 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-700 text-sm">
+                <label for="source_url" class="block text-sm font-bold text-indigo-950 mb-1.5">
+                    售票連結
+                </label>
+                <input type="url" id="source_url" placeholder="https://..." class="form-input w-full rounded-xl px-4 py-2.5 text-sm text-slate-800 placeholder-slate-400">
             </div>
 
-            <div class="pt-3 border-t border-indigo-900/15 space-y-4">
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-sm font-bold text-indigo-950 mb-1.5">投稿人是誰（主辦／樂團名稱） <span class="text-rose-600">*</span></label>
-                        <input type="text" id="submitterName" required placeholder="請輸入主辦或樂團名稱"
-                            class="w-full px-3.5 py-2.5 rounded-xl border border-indigo-900/20 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-700 text-sm">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-bold text-indigo-950 mb-1.5">社群官方 IG <span class="text-rose-600">*</span></label>
-                        <input type="text" id="submitterSocial" required placeholder="@..."
-                            class="w-full px-3.5 py-2.5 rounded-xl border border-indigo-900/20 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-700 text-sm">
-                    </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <label for="submitter_name" class="block text-sm font-bold text-indigo-950 mb-1.5">
+                        投稿人是誰（主辦／樂團名稱） <span class="text-indigo-600">*</span>
+                    </label>
+                    <input type="text" id="submitter_name" required class="form-input w-full rounded-xl px-4 py-2.5 text-sm text-slate-800 placeholder-slate-400">
+                </div>
+                <div>
+                    <label for="submitter_social" class="block text-sm font-bold text-indigo-950 mb-1.5">
+                        社群官方 IG <span class="text-indigo-600">*</span>
+                    </label>
+                    <input type="url" id="submitter_social" required placeholder="https://www.instagram.com/..." class="form-input w-full rounded-xl px-4 py-2.5 text-sm text-slate-800 placeholder-slate-400">
                 </div>
             </div>
 
-            <button type="submit" id="submitBtn"
-                class="w-full py-3 rounded-xl bg-indigo-900 hover:bg-indigo-800 text-white font-bold text-sm transition cursor-pointer shadow-sm">
-                送出投稿
+            <div id="statusMessage" class="hidden rounded-xl px-4 py-3 text-sm font-medium"></div>
+
+            <button type="submit" id="submitBtn" class="w-full bg-indigo-900 hover:bg-indigo-800 active:bg-indigo-950 text-white font-bold text-sm py-3.5 rounded-xl shadow-md shadow-indigo-950/20 transition cursor-pointer">
+                立即送出活動（等待後台審核）
             </button>
         </form>
     </div>
@@ -148,81 +174,112 @@
         const SUPABASE_KEY = 'sb_publishable_K7iIa_1ztydOrYUrO465DA_nqwN_K_6';
         const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        const tbdStartEl = document.getElementById('tbdStartTime');
-        const startTimeEl = document.getElementById('startTime');
-        const tbdEndEl = document.getElementById('tbdEndTime');
-        const endTimeEl = document.getElementById('endTime');
+        const form = document.getElementById('submitForm');
+        const submitBtn = document.getElementById('submitBtn');
+        const statusMessage = document.getElementById('statusMessage');
+        const startDateInput = document.getElementById('start_date');
+        const endDateInput = document.getElementById('end_date');
+        const startTimeTbdCheckbox = document.getElementById('start_time_tbd');
+        const endTimeTbdCheckbox = document.getElementById('end_time_tbd');
 
-        tbdStartEl.addEventListener('change', function() {
-            startTimeEl.disabled = this.checked;
-            startTimeEl.classList.toggle('bg-slate-100', this.checked);
-            startTimeEl.classList.toggle('text-slate-400', this.checked);
+        function applyTbdTime(inputEl, isTbd) {
+            if (!isTbd) return;
+            const currentVal = inputEl.value;
+            if (currentVal && currentVal.includes('T')) {
+                const datePart = currentVal.split('T')[0];
+                inputEl.value = datePart + 'T00:00';
+            }
+        }
+
+        startTimeTbdCheckbox.addEventListener('change', function() {
+            applyTbdTime(startDateInput, startTimeTbdCheckbox.checked);
         });
 
-        tbdEndEl.addEventListener('change', function() {
-            endTimeEl.disabled = this.checked;
-            endTimeEl.classList.toggle('bg-slate-100', this.checked);
-            endTimeEl.classList.toggle('text-slate-400', this.checked);
+        endTimeTbdCheckbox.addEventListener('change', function() {
+            applyTbdTime(endDateInput, endTimeTbdCheckbox.checked);
         });
 
-        document.getElementById('submitForm').addEventListener('submit', async function(e) {
+        function showStatus(text, isError) {
+            statusMessage.textContent = text;
+            statusMessage.className = 'rounded-xl px-4 py-3 text-sm font-medium ' + (
+                isError
+                    ? 'bg-rose-50 text-rose-800 border border-rose-200'
+                    : 'bg-indigo-50 text-indigo-950 border border-indigo-200'
+            );
+            statusMessage.classList.remove('hidden');
+        }
+
+        form.addEventListener('submit', async function(e) {
             e.preventDefault();
-            const btn = document.getElementById('submitBtn');
-            btn.disabled = true;
-            btn.textContent = '送出中...';
+            submitBtn.disabled = true;
+            submitBtn.textContent = '資料傳送中...';
+            statusMessage.classList.add('hidden');
+
+            const title = document.getElementById('title').value.trim();
+            const lineupRaw = document.getElementById('lineup').value.trim();
+            const startRaw = startDateInput.value;
+            const endRaw = endDateInput.value;
+            const startTimeTbd = startTimeTbdCheckbox.checked;
+            const endTimeTbd = endTimeTbdCheckbox.checked;
+            const county = document.getElementById('county').value.trim();
+            const venueName = document.getElementById('venue').value.trim();
+            const sourceUrl = document.getElementById('source_url').value.trim();
+            const submitterName = document.getElementById('submitter_name').value.trim();
+            const submitterSocial = document.getElementById('submitter_social').value.trim();
+
+            const startDatePart = startRaw ? startRaw.split('T')[0] : null;
+            const startTimePart = startTimeTbd
+                ? '00:00'
+                : ((startRaw && startRaw.split('T')[1]) ? startRaw.split('T')[1].slice(0, 5) : '00:00');
+            const startDateToSave = startDatePart ? (startDatePart + 'T' + startTimePart + ':00') : null;
+
+            const endDatePart = endRaw ? endRaw.split('T')[0] : startDatePart;
+            const endTimePart = endTimeTbd
+                ? '00:00'
+                : ((endRaw && endRaw.split('T')[1]) ? endRaw.split('T')[1].slice(0, 5) : '00:00');
+            const endDateToSave = endDatePart || null;
+
+            const tbdMarkers = [];
+            if (startTimeTbd) tbdMarkers.push('[TBD_START_TIME]');
+            if (endTimeTbd) tbdMarkers.push('[TBD_END_TIME]');
+            if (endRaw && endRaw.includes('T') && endTimePart) {
+                tbdMarkers.push('[END_TIME:' + endTimePart + ']');
+            }
+            const lineupToSave = tbdMarkers.length > 0
+                ? (lineupRaw + ' ' + tbdMarkers.join(' '))
+                : lineupRaw;
 
             try {
-                const title = document.getElementById('title').value.trim();
-                let lineup = document.getElementById('lineup').value.trim();
-                const county = document.getElementById('county').value;
-                const venueName = document.getElementById('venueName').value.trim();
-                const startDate = document.getElementById('startDate').value;
-                const endDate = document.getElementById('endDate').value || startDate;
-                const sourceUrl = document.getElementById('sourceUrl').value.trim();
-                const submitterName = document.getElementById('submitterName').value.trim();
-                const submitterSocial = document.getElementById('submitterSocial').value.trim();
-
-                let timePart = '00:00:00';
-                if (tbdStartEl.checked) {
-                    lineup += ' [TBD_START_TIME]';
-                } else if (startTimeEl.value) {
-                    timePart = startTimeEl.value + ':00';
-                }
-
-                if (tbdEndEl.checked) {
-                    lineup += ' [TBD_END_TIME]';
-                } else if (endTimeEl.value) {
-                    lineup += ' [END_TIME:' + endTimeEl.value + ']';
-                }
-
                 let venueId = null;
-                const { data: existingVenues } = await supabaseClient
+                const { data: existingVenues, error: venueSearchErr } = await supabaseClient
                     .from('mp_venues')
                     .select('id')
                     .eq('name', venueName)
                     .eq('county', county)
                     .limit(1);
 
+                if (venueSearchErr) throw venueSearchErr;
+
                 if (existingVenues && existingVenues.length > 0) {
                     venueId = existingVenues[0].id;
                 } else {
-                    const { data: newVenue, error: venueErr } = await supabaseClient
+                    const { data: newVenue, error: venueInsertErr } = await supabaseClient
                         .from('mp_venues')
                         .insert([{ name: venueName, county: county }])
                         .select('id')
                         .single();
-                    if (venueErr) throw venueErr;
+
+                    if (venueInsertErr) throw venueInsertErr;
                     venueId = newVenue.id;
                 }
 
-                const startIso = startDate + 'T' + timePart + '+08:00';
-                const { data: newEvent, error: eventErr } = await supabaseClient
+                const { data: newEvent, error: eventInsertErr } = await supabaseClient
                     .from('mp_events')
                     .insert([{
                         title: title,
-                        lineup: lineup,
-                        start_date: startIso,
-                        end_date: endDate,
+                        lineup: lineupToSave,
+                        start_date: startDateToSave,
+                        end_date: endDateToSave,
                         venue_id: venueId,
                         status: 'pending',
                         submitter_name: submitterName,
@@ -231,25 +288,27 @@
                     .select('id')
                     .single();
 
-                if (eventErr) throw eventErr;
+                if (eventInsertErr) throw eventInsertErr;
 
                 if (sourceUrl && newEvent && newEvent.id) {
-                    await supabaseClient
+                    const { error: sourceInsertErr } = await supabaseClient
                         .from('mp_event_sources')
-                        .insert([{ event_id: newEvent.id, source_url: sourceUrl }]);
+                        .insert([{
+                            event_id: newEvent.id,
+                            source_url: sourceUrl
+                        }]);
+
+                    if (sourceInsertErr) throw sourceInsertErr;
                 }
 
-                alert('投稿成功！');
-                document.getElementById('submitForm').reset();
-                startTimeEl.disabled = false;
-                startTimeEl.classList.remove('bg-slate-100', 'text-slate-400');
-                endTimeEl.disabled = false;
-                endTimeEl.classList.remove('bg-slate-100', 'text-slate-400');
+                showStatus('投稿已成功送出！活動將在後台審核通過後顯示於月曆上。', false);
+                form.reset();
             } catch (err) {
-                alert('送出失敗：' + (err.message || err));
+                console.error('送出失敗:', err);
+                showStatus('送出失敗，請稍後再試或檢查欄位格式：' + (err.message || err), true);
             } finally {
-                btn.disabled = false;
-                btn.textContent = '送出投稿';
+                submitBtn.disabled = false;
+                submitBtn.textContent = '立即送出活動（等待後台審核）';
             }
         });
     </script>

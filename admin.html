@@ -15,66 +15,166 @@
                 linear-gradient(180deg, rgba(238, 240, 247, 0.92) 0%, rgba(244, 241, 234, 0.95) 100%);
             color: #1e2538;
         }
-
         .glass-panel {
-            background: rgba(255, 255, 255, 0.88);
+            background: rgba(255, 255, 255, 0.9);
             border: 1px solid rgba(55, 48, 163, 0.18);
         }
     </style>
 </head>
 <body class="min-h-screen p-4 md:p-8">
 
+    <!-- 後台密碼驗證遮罩 -->
+    <div id="authGate" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-xl border border-indigo-900/20">
+            <h2 class="text-lg font-bold text-indigo-950 mb-1">金屬卷軸審核後台驗證</h2>
+            <p class="text-xs text-slate-500 mb-4">請輸入管理員密碼以開啟審核、編輯與垃圾桶功能</p>
+            <input type="password" id="adminPassInput" placeholder="請輸入管理員密碼"
+                class="w-full px-3.5 py-2.5 rounded-xl border border-indigo-900/20 text-sm mb-3 focus:outline-none focus:ring-2 focus:ring-indigo-700">
+            <button type="button" onclick="verifyPass()"
+                class="w-full py-2.5 rounded-xl bg-indigo-900 hover:bg-indigo-800 text-white text-sm font-bold cursor-pointer">
+                進入後台
+            </button>
+        </div>
+    </div>
+
     <div class="max-w-6xl mx-auto">
         <header class="glass-panel flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 p-6 rounded-2xl">
             <div class="min-w-0">
-                <div class="inline-flex items-center gap-2 text-[11px] font-semibold tracking-widest uppercase text-indigo-800 bg-indigo-100/80 px-2.5 py-0.5 rounded-full mb-1.5 whitespace-nowrap">
+                <div class="inline-flex items-center gap-2 text-[11px] font-semibold tracking-widest uppercase text-indigo-800 bg-indigo-100/80 px-2.5 py-0.5 rounded-full mb-1.5">
                     <span>ADMIN CONSOLE</span>
-                    <span>•</span>
-                    <span>REVIEW PORTAL</span>
                 </div>
-                <h1 class="text-lg sm:text-2xl font-bold tracking-wide text-indigo-950 whitespace-nowrap">
+                <h1 class="text-lg sm:text-2xl font-bold tracking-wide text-indigo-950">
                     The Metal Scroll <span class="text-indigo-700/50 mx-1">|</span> <span class="text-indigo-900">金屬卷軸</span>
                 </h1>
-                <p class="text-sm text-slate-600 mt-1">投稿活動審核與上線狀態管理</p>
+                <p class="text-sm text-slate-600 mt-1">投稿審核、內容編修與垃圾桶復原管理</p>
             </div>
 
-            <a href="https://themetalscrolltw.github.io/metal-scroll-calendar/" target="_blank" rel="noopener noreferrer" class="bg-indigo-900 hover:bg-indigo-800 text-white px-4 py-2.5 rounded-xl text-sm font-semibold transition whitespace-nowrap shrink-0">
+            <a href="https://themetalscrolltw.github.io/metal-scroll-calendar/" target="_blank" rel="noopener noreferrer"
+                class="bg-indigo-900 hover:bg-indigo-800 text-white px-4 py-2.5 rounded-xl text-sm font-semibold transition whitespace-nowrap shrink-0">
                 查看公開活動月曆 &rarr;
             </a>
         </header>
 
         <main class="glass-panel rounded-2xl p-5 sm:p-6">
-            <div class="flex items-center justify-between gap-2 mb-4">
-                <h2 class="text-base sm:text-lg font-bold text-indigo-950">投稿活動審核列表</h2>
-                <button type="button" onclick="fetchEvents()" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-indigo-900/10 hover:bg-indigo-900/20 text-indigo-950 transition cursor-pointer whitespace-nowrap">
+            <div class="flex flex-wrap items-center justify-between gap-3 mb-5">
+                <div class="flex items-center gap-2">
+                    <button type="button" id="tabActiveBtn" onclick="switchTab('active')"
+                        class="px-4 py-2 rounded-xl text-xs font-bold bg-indigo-900 text-white cursor-pointer">
+                        審核與已上線列表 (<span id="activeCount">0</span>)
+                    </button>
+                    <button type="button" id="tabTrashBtn" onclick="switchTab('trash')"
+                        class="px-4 py-2 rounded-xl text-xs font-bold bg-slate-200/80 text-slate-700 hover:bg-slate-300/80 cursor-pointer">
+                        🗑️ 垃圾桶 (<span id="trashCount">0</span>)
+                    </button>
+                </div>
+
+                <button type="button" onclick="fetchEvents()"
+                    class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-indigo-900/10 hover:bg-indigo-900/20 text-indigo-950 transition cursor-pointer">
                     重新整理
                 </button>
             </div>
 
             <div id="loading" class="text-center py-8 text-slate-500 text-sm">載入中...</div>
-
-            <div class="overflow-x-auto">
-                <table id="eventTable" class="w-full text-left border-collapse hidden">
-                    <thead>
-                        <tr class="border-b border-indigo-900/15 text-slate-600 text-xs uppercase tracking-wider">
-                            <th class="py-3 px-3 sm:px-4">活動名稱</th>
-                            <th class="py-3 px-3 sm:px-4">演出陣容</th>
-                            <th class="py-3 px-3 sm:px-4">場地</th>
-                            <th class="py-3 px-3 sm:px-4">日期</th>
-                            <th class="py-3 px-3 sm:px-4">狀態</th>
-                            <th class="py-3 px-3 sm:px-4 text-center">操作</th>
-                        </tr>
-                    </thead>
-                    <tbody id="eventList" class="divide-y divide-indigo-900/10 text-sm"></tbody>
-                </table>
-            </div>
+            <div id="eventCards" class="space-y-4"></div>
         </main>
+    </div>
+
+    <!-- 編輯投稿視窗 Modal -->
+    <div id="editModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-40 hidden items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-white rounded-2xl max-w-xl w-full p-6 shadow-xl border border-indigo-900/20 my-8">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-bold text-indigo-950">編輯活動內容</h3>
+                <button type="button" onclick="closeEditModal()" class="text-slate-400 hover:text-slate-700 text-xl font-bold cursor-pointer">&times;</button>
+            </div>
+
+            <form id="editForm" class="space-y-4 text-sm">
+                <input type="hidden" id="editId">
+                <div>
+                    <label class="block font-bold text-indigo-950 mb-1">活動名稱</label>
+                    <input type="text" id="editTitle" required class="w-full px-3 py-2 rounded-xl border border-indigo-900/20">
+                </div>
+                <div>
+                    <label class="block font-bold text-indigo-950 mb-1">演出陣容／內容</label>
+                    <textarea id="editLineup" rows="3" required class="w-full px-3 py-2 rounded-xl border border-indigo-900/20"></textarea>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-bold text-indigo-950 mb-1">開始日期</label>
+                        <input type="date" id="editStartDate" required class="w-full px-3 py-2 rounded-xl border border-indigo-900/20">
+                    </div>
+                    <div>
+                        <div class="flex justify-between items-center mb-1">
+                            <label class="font-bold text-indigo-950">開始時間</label>
+                            <label class="text-xs text-slate-600 flex items-center gap-1 cursor-pointer">
+                                <input type="checkbox" id="editTbdStart"> 尚未確定
+                            </label>
+                        </div>
+                        <input type="time" id="editStartTime" class="w-full px-3 py-2 rounded-xl border border-indigo-900/20">
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-bold text-indigo-950 mb-1">結束日期</label>
+                        <input type="date" id="editEndDate" class="w-full px-3 py-2 rounded-xl border border-indigo-900/20">
+                    </div>
+                    <div>
+                        <div class="flex justify-between items-center mb-1">
+                            <label class="font-bold text-indigo-950">結束時間</label>
+                            <label class="text-xs text-slate-600 flex items-center gap-1 cursor-pointer">
+                                <input type="checkbox" id="editTbdEnd"> 尚未確定
+                            </label>
+                        </div>
+                        <input type="time" id="editEndTime" class="w-full px-3 py-2 rounded-xl border border-indigo-900/20">
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-bold text-indigo-950 mb-1">投稿人名稱</label>
+                        <input type="text" id="editSubmitterName" class="w-full px-3 py-2 rounded-xl border border-indigo-900/20">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-indigo-950 mb-1">投稿人 IG / 社群官網</label>
+                        <input type="text" id="editSubmitterSocial" class="w-full px-3 py-2 rounded-xl border border-indigo-900/20">
+                    </div>
+                </div>
+
+                <div class="flex justify-end gap-2 pt-3">
+                    <button type="button" onclick="closeEditModal()" class="px-4 py-2 rounded-xl bg-slate-200 text-slate-700 font-semibold cursor-pointer">取消</button>
+                    <button type="submit" class="px-4 py-2 rounded-xl bg-indigo-900 hover:bg-indigo-800 text-white font-bold cursor-pointer">儲存修改</button>
+                </div>
+            </form>
+        </div>
     </div>
 
     <script>
         const SUPABASE_URL = 'https://ybbwdtndrnnvfkeiclji.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_K7iIa_1ztydOrYUrO465DA_nqwN_K_6';
         const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        // 管理員密碼（可自行修改引號內文字）
+        const ADMIN_PASS = 'metalscroll2026';
+
+        let allEvents = [];
+        let currentTab = 'active';
+
+        function verifyPass() {
+            const val = document.getElementById('adminPassInput').value;
+            if (val === ADMIN_PASS) {
+                sessionStorage.setItem('ms_admin_auth', '1');
+                document.getElementById('authGate').classList.add('hidden');
+                fetchEvents();
+            } else {
+                alert('密碼錯誤，請重新輸入');
+            }
+        }
+
+        document.getElementById('adminPassInput').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') verifyPass();
+        });
+
+        if (sessionStorage.getItem('ms_admin_auth') === '1') {
+            document.getElementById('authGate').classList.add('hidden');
+        }
 
         function escapeHtml(str) {
             return String(str || '')
@@ -85,100 +185,255 @@
                 .replace(/'/g, '&#39;');
         }
 
-        function cleanLineupText(rawLineup) {
-            return String(rawLineup || '')
+        function formatExactTimestamp(isoStr) {
+            if (!isoStr) return '無紀錄';
+            const d = new Date(isoStr);
+            if (isNaN(d.getTime())) return isoStr;
+            const pad = n => String(n).padStart(2, '0');
+            return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) +
+                   ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds());
+        }
+
+        function cleanLineupText(raw) {
+            return String(raw || '')
                 .replace(/\[TBD_START_TIME\]/g, '')
                 .replace(/\[TBD_END_TIME\]/g, '')
                 .replace(/\[END_TIME:\d{2}:\d{2}\]/g, '')
-                .replace(/尚未確定/g, '')
                 .trim();
         }
 
-        async function fetchEvents() {
-            const listEl = document.getElementById('eventList');
-            const tableEl = document.getElementById('eventTable');
-            const loadingEl = document.getElementById('loading');
+        function switchTab(tab) {
+            currentTab = tab;
+            const activeBtn = document.getElementById('tabActiveBtn');
+            const trashBtn = document.getElementById('tabTrashBtn');
+            if (tab === 'active') {
+                activeBtn.className = 'px-4 py-2 rounded-xl text-xs font-bold bg-indigo-900 text-white cursor-pointer';
+                trashBtn.className = 'px-4 py-2 rounded-xl text-xs font-bold bg-slate-200/80 text-slate-700 hover:bg-slate-300/80 cursor-pointer';
+            } else {
+                trashBtn.className = 'px-4 py-2 rounded-xl text-xs font-bold bg-rose-700 text-white cursor-pointer';
+                activeBtn.className = 'px-4 py-2 rounded-xl text-xs font-bold bg-slate-200/80 text-slate-700 hover:bg-slate-300/80 cursor-pointer';
+            }
+            renderEvents();
+        }
 
+        async function fetchEvents() {
+            const loadingEl = document.getElementById('loading');
             loadingEl.style.display = 'block';
-            loadingEl.className = 'text-center py-8 text-slate-500 text-sm';
             loadingEl.textContent = '載入中...';
-            tableEl.classList.add('hidden');
 
             try {
                 const { data, error } = await supabaseClient
                     .from('mp_events')
                     .select('*, mp_venues(name, county)')
-                    .order('start_date', { ascending: true });
+                    .order('created_at', { ascending: false });
 
                 if (error) throw error;
-
+                allEvents = data || [];
                 loadingEl.style.display = 'none';
-                tableEl.classList.remove('hidden');
-                listEl.innerHTML = '';
-
-                if (!data || data.length === 0) {
-                    listEl.innerHTML = '<tr><td colspan="6" class="text-center py-8 text-slate-500">目前沒有投稿活動</td></tr>';
-                    return;
-                }
-
-                data.forEach(function(ev) {
-                    const tr = document.createElement('tr');
-                    const isPublished = ev.status === 'published';
-                    const venueText = ev.mp_venues
-                        ? ((ev.mp_venues.county ? ev.mp_venues.county + ' · ' : '') + (ev.mp_venues.name || ''))
-                        : '未指定';
-                    const dateText = ev.start_date ? String(ev.start_date).split('T')[0] : '';
-                    const displayLineup = cleanLineupText(ev.lineup);
-
-                    tr.innerHTML =
-                        '<td class="py-3 px-3 sm:px-4 font-semibold text-indigo-950">' + escapeHtml(ev.title) + '</td>' +
-                        '<td class="py-3 px-3 sm:px-4 text-slate-700">' + escapeHtml(displayLineup) + '</td>' +
-                        '<td class="py-3 px-3 sm:px-4 text-slate-600">' + escapeHtml(venueText) + '</td>' +
-                        '<td class="py-3 px-3 sm:px-4 text-slate-600 whitespace-nowrap">' + escapeHtml(dateText) + '</td>' +
-                        '<td class="py-3 px-3 sm:px-4 whitespace-nowrap">' +
-                            '<span class="px-2.5 py-1 rounded-full text-xs font-semibold ' +
-                                (isPublished ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800') + '">' +
-                                (isPublished ? '已上線' : '審核中') +
-                            '</span>' +
-                        '</td>' +
-                        '<td class="py-3 px-3 sm:px-4 text-center whitespace-nowrap">' +
-                            '<button type="button" onclick="toggleStatus(\'' + escapeHtml(ev.id) + '\', \'' + escapeHtml(ev.status) + '\')" ' +
-                                'class="px-3 py-1.5 rounded-lg text-xs font-semibold text-white transition cursor-pointer ' +
-                                (isPublished ? 'bg-rose-600 hover:bg-rose-700' : 'bg-indigo-900 hover:bg-indigo-800') + '">' +
-                                (isPublished ? '下架' : '審核上線') +
-                            '</button>' +
-                        '</td>';
-                    listEl.appendChild(tr);
-                });
+                renderEvents();
             } catch (err) {
-                loadingEl.style.display = 'block';
-                loadingEl.className = 'text-center py-8 text-rose-700 text-sm font-medium';
                 loadingEl.textContent = '載入失敗：' + (err.message || err);
             }
         }
 
-        async function toggleStatus(id, currentStatus) {
-            const newStatus = currentStatus === 'published' ? 'pending' : 'published';
-            const { data, error } = await supabaseClient
+        function renderEvents() {
+            const container = document.getElementById('eventCards');
+            const activeList = allEvents.filter(ev => ev.status !== 'deleted');
+            const trashList = allEvents.filter(ev => ev.status === 'deleted');
+
+            document.getElementById('activeCount').textContent = activeList.length;
+            document.getElementById('trashCount').textContent = trashList.length;
+
+            const list = currentTab === 'active' ? activeList : trashList;
+            container.innerHTML = '';
+
+            if (list.length === 0) {
+                container.innerHTML = '<div class="text-center py-8 text-slate-500 text-sm">' +
+                    (currentTab === 'active' ? '目前沒有投稿活動' : '垃圾桶目前是空的') + '</div>';
+                return;
+            }
+
+            list.forEach(ev => {
+                const isPublished = ev.status === 'published';
+                const isDeleted = ev.status === 'deleted';
+                const venueText = ev.mp_venues
+                    ? ((ev.mp_venues.county ? ev.mp_venues.county + ' · ' : '') + (ev.mp_venues.name || ''))
+                    : '未指定場地';
+                const startDateText = ev.start_date ? String(ev.start_date).replace('T', ' ').slice(0, 16) : '';
+                const hasTbdStart = String(ev.lineup || '').includes('[TBD_START_TIME]');
+                const submittedAt = formatExactTimestamp(ev.created_at);
+
+                const socialRaw = String(ev.submitter_social || '').trim();
+                let socialHtml = '<span class="text-slate-400">未填寫</span>';
+                if (socialRaw) {
+                    const href = socialRaw.startsWith('http')
+                        ? socialRaw
+                        : 'https://www.instagram.com/' + socialRaw.replace(/^@/, '') + '/';
+                    socialHtml = '<a href="' + escapeHtml(href) + '" target="_blank" rel="noopener noreferrer" class="text-indigo-700 underline font-medium">' + escapeHtml(socialRaw) + '</a>';
+                }
+
+                const card = document.createElement('div');
+                card.className = 'p-4 sm:p-5 rounded-xl border border-indigo-900/15 bg-white/95 shadow-sm flex flex-col lg:flex-row justify-between gap-4';
+
+                let actionsHtml = '';
+                if (!isDeleted) {
+                    actionsHtml =
+                        '<button type="button" onclick="openEditModal(\'' + ev.id + '\')" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-800 cursor-pointer">編輯內容</button>' +
+                        '<button type="button" onclick="updateStatus(\'' + ev.id + '\', \'' + (isPublished ? 'pending' : 'published') + '\')" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-white cursor-pointer ' + (isPublished ? 'bg-amber-600 hover:bg-amber-700' : 'bg-indigo-900 hover:bg-indigo-800') + '">' + (isPublished ? '下架' : '審核上線') + '</button>' +
+                        '<button type="button" onclick="moveToTrash(\'' + ev.id + '\')" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-rose-100 hover:bg-rose-200 text-rose-800 cursor-pointer">刪除</button>';
+                } else {
+                    actionsHtml =
+                        '<button type="button" onclick="updateStatus(\'' + ev.id + '\', \'pending\')" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-700 hover:bg-emerald-800 text-white cursor-pointer">♻️ 復原到待審核</button>' +
+                        '<button type="button" onclick="permanentDelete(\'' + ev.id + '\')" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-rose-700 hover:bg-rose-800 text-white cursor-pointer">永久刪除</button>';
+                }
+
+                card.innerHTML =
+                    '<div class="space-y-1.5 flex-1 min-w-0">' +
+                        '<div class="flex flex-wrap items-center gap-2">' +
+                            '<span class="px-2.5 py-0.5 rounded-full text-xs font-bold ' +
+                                (isDeleted ? 'bg-slate-200 text-slate-700' : (isPublished ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800')) + '">' +
+                                (isDeleted ? '已刪除（垃圾桶）' : (isPublished ? '已上線' : '審核中')) +
+                            '</span>' +
+                            '<h3 class="text-base font-bold text-indigo-950">' + escapeHtml(ev.title) + '</h3>' +
+                        '</div>' +
+                        '<p class="text-sm text-slate-700 whitespace-pre-line">' + escapeHtml(cleanLineupText(ev.lineup)) + '</p>' +
+                        '<div class="text-xs text-slate-600 flex flex-wrap gap-x-4 gap-y-1 pt-1">' +
+                            '<span>📍 場地：' + escapeHtml(venueText) + '</span>' +
+                            '<span>🗓️ 活動時間：' + escapeHtml(hasTbdStart ? startDateText.slice(0, 10) + '（時間未定）' : startDateText) + '</span>' +
+                        '</div>' +
+                        '<div class="text-xs text-slate-500 bg-slate-50 px-3 py-2 rounded-lg border border-slate-200/80 flex flex-wrap gap-x-4 gap-y-1 mt-2">' +
+                            '<span>👤 投稿人：<strong>' + escapeHtml(ev.submitter_name || '未填寫') + '</strong></span>' +
+                            '<span>🔗 IG／官網：' + socialHtml + '</span>' +
+                            '<span>⏱️ 投稿時間：' + escapeHtml(submittedAt) + '</span>' +
+                        '</div>' +
+                    '</div>' +
+                    '<div class="flex lg:flex-col justify-end items-stretch sm:items-center lg:items-end gap-2 shrink-0">' +
+                        actionsHtml +
+                    '</div>';
+
+                container.appendChild(card);
+            });
+        }
+
+        async function updateStatus(id, newStatus) {
+            const { error } = await supabaseClient
                 .from('mp_events')
                 .update({ status: newStatus })
-                .eq('id', id)
-                .select('id');
+                .eq('id', id);
 
             if (error) {
-                alert('更新失敗：' + error.message + '\n\n若為權限不足，請至 Supabase SQL Editor 設定 mp_events 的 UPDATE 政策。');
+                alert('操作失敗：' + error.message);
                 return;
             }
-
-            if (!data || data.length === 0) {
-                alert('狀態未變更（可能受 Supabase RLS 權限限制），請至 SQL Editor 確認 mp_events 的 UPDATE 政策。');
-                return;
-            }
-
             fetchEvents();
         }
 
-        fetchEvents();
+        async function moveToTrash(id) {
+            if (!confirm('確定要將這筆活動移至垃圾桶嗎？（之後仍可從垃圾桶復原）')) return;
+            await updateStatus(id, 'deleted');
+        }
+
+        async function permanentDelete(id) {
+            if (!confirm('警告：永久刪除後將無法再復原！確定要徹底刪除嗎？')) return;
+            const { error } = await supabaseClient
+                .from('mp_events')
+                .delete()
+                .eq('id', id);
+
+            if (error) {
+                alert('永久刪除失敗：' + error.message);
+                return;
+            }
+            fetchEvents();
+        }
+
+        function openEditModal(id) {
+            const ev = allEvents.find(item => String(item.id) === String(id));
+            if (!ev) return;
+
+            document.getElementById('editId').value = ev.id;
+            document.getElementById('editTitle').value = ev.title || '';
+            document.getElementById('editLineup').value = cleanLineupText(ev.lineup);
+
+            const rawLineup = String(ev.lineup || '');
+            const isTbdStart = rawLineup.includes('[TBD_START_TIME]');
+            const isTbdEnd = rawLineup.includes('[TBD_END_TIME]');
+            const endTimeMatch = rawLineup.match(/\[END_TIME:(\d{2}:\d{2})\]/);
+
+            const startIso = String(ev.start_date || '');
+            document.getElementById('editStartDate').value = startIso.slice(0, 10);
+            document.getElementById('editTbdStart').checked = isTbdStart;
+            document.getElementById('editStartTime').value = (!isTbdStart && startIso.length >= 16) ? startIso.slice(11, 16) : '19:00';
+
+            document.getElementById('editEndDate').value = ev.end_date ? String(ev.end_date).slice(0, 10) : startIso.slice(0, 10);
+            document.getElementById('editTbdEnd').checked = isTbdEnd;
+            document.getElementById('editEndTime').value = endTimeMatch ? endTimeMatch[1] : '';
+
+            document.getElementById('editSubmitterName').value = ev.submitter_name || '';
+            document.getElementById('editSubmitterSocial').value = ev.submitter_social || '';
+
+            const modal = document.getElementById('editModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeEditModal() {
+            const modal = document.getElementById('editModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        document.getElementById('editForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const id = document.getElementById('editId').value;
+            const title = document.getElementById('editTitle').value.trim();
+            let lineup = document.getElementById('editLineup').value.trim();
+            const startDate = document.getElementById('editStartDate').value;
+            const tbdStart = document.getElementById('editTbdStart').checked;
+            const startTime = document.getElementById('editStartTime').value;
+            const endDate = document.getElementById('editEndDate').value || startDate;
+            const tbdEnd = document.getElementById('editTbdEnd').checked;
+            const endTime = document.getElementById('editEndTime').value;
+            const submitterName = document.getElementById('editSubmitterName').value.trim();
+            const submitterSocial = document.getElementById('editSubmitterSocial').value.trim();
+
+            let timePart = '00:00:00';
+            if (tbdStart) {
+                lineup += ' [TBD_START_TIME]';
+            } else if (startTime) {
+                timePart = startTime + ':00';
+            }
+
+            if (tbdEnd) {
+                lineup += ' [TBD_END_TIME]';
+            } else if (endTime) {
+                lineup += ' [END_TIME:' + endTime + ']';
+            }
+
+            const { error } = await supabaseClient
+                .from('mp_events')
+                .update({
+                    title: title,
+                    lineup: lineup,
+                    start_date: startDate + 'T' + timePart + '+08:00',
+                    end_date: endDate,
+                    submitter_name: submitterName,
+                    submitter_social: submitterSocial
+                })
+                .eq('id', id);
+
+            if (error) {
+                alert('更新失敗：' + error.message);
+                return;
+            }
+
+            closeEditModal();
+            fetchEvents();
+        });
+
+        if (sessionStorage.getItem('ms_admin_auth') === '1') {
+            fetchEvents();
+        }
     </script>
 </body>
 </html>

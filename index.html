@@ -94,7 +94,6 @@
 
         #mobileWeekStrip {
             touch-action: pan-y;
-            will-change: transform;
         }
 
         @media (max-width: 767.98px) {
@@ -242,7 +241,7 @@
         let mobileShowWholeWeek = false;
         let mobileSearchKeyword = '';
 
-        const MAX_CARD_BANDS = 3;
+        const MAX_CARD_BANDS = 1;
 
         const TEXTS = {
             zh: {
@@ -420,6 +419,12 @@
             }
 
             return endText ? (startText + ' ～ ' + endText) : startText;
+        }
+
+        function compareEventsByStartTime(a, b) {
+            const aTime = String(a && a.start_date ? a.start_date : '');
+            const bTime = String(b && b.start_date ? b.start_date : '');
+            return aTime.localeCompare(bTime);
         }
 
         async function fetchEvents() {
@@ -606,9 +611,6 @@
             const listEl = document.getElementById('mobileWeeklyEventList');
             if (!rangeTitleEl || !stripEl || !agendaTitleEl || !listEl) return;
 
-            stripEl.style.transition = '';
-            stripEl.style.transform = '';
-
             const weekDates = [];
             for (let i = 0; i < 7; i++) {
                 weekDates.push(new Date(
@@ -641,9 +643,7 @@
                         ].join(' ').toLowerCase();
                         return haystack.indexOf(mobileSearchKeyword) !== -1;
                     })
-                    .sort(function(a, b) {
-                        return String(a.start_date || '').localeCompare(String(b.start_date || ''));
-                    });
+                    .sort(compareEventsByStartTime);
 
                 agendaTitleEl.textContent = currentLang === 'zh'
                     ? ('搜尋「' + mobileSearchKeyword + '」結果（共 ' + matchedEvents.length + ' 場）')
@@ -679,9 +679,7 @@
                         const evDate = String(ev.start_date).split('T')[0];
                         return weekDateStrSet.has(evDate);
                     })
-                    .sort(function(a, b) {
-                        return String(a.start_date || '').localeCompare(String(b.start_date || ''));
-                    });
+                    .sort(compareEventsByStartTime);
 
                 agendaTitleEl.textContent = currentLang === 'zh'
                     ? ('本週演出（' + startShort + ' - ' + endShort + '，共 ' + weekEvents.length + ' 場）')
@@ -705,9 +703,7 @@
                 .filter(function(ev) {
                     return ev.start_date && String(ev.start_date).split('T')[0] === selectedMobileDateStr;
                 })
-                .sort(function(a, b) {
-                    return String(a.start_date || '').localeCompare(String(b.start_date || ''));
-                });
+                .sort(compareEventsByStartTime);
 
             agendaTitleEl.textContent = currentLang === 'zh'
                 ? (selectedMobileDateStr + ' 演出活動（共 ' + dayEvents.length + ' 場）')
@@ -780,9 +776,11 @@
 
             let eventsHtml = '';
             if (!isOtherMonth && dateStr) {
-                const dayEvents = eventsData.filter(function(ev) {
-                    return ev.start_date && String(ev.start_date).split('T')[0] === dateStr;
-                });
+                const dayEvents = eventsData
+                    .filter(function(ev) {
+                        return ev.start_date && String(ev.start_date).split('T')[0] === dateStr;
+                    })
+                    .sort(compareEventsByStartTime);
 
                 dayEvents.forEach(function(ev) {
                     const title = escapeHtml(ev.title || '');
@@ -860,60 +858,21 @@
         }
 
         let mobileSwipeStartX = 0;
-        let mobileSwipeCurrentX = 0;
-        let isMobileSwiping = false;
-        let previewDirection = 0;
         const mobileStripEl = document.getElementById('mobileWeekStrip');
         if (mobileStripEl) {
             mobileStripEl.addEventListener('touchstart', function(e) {
                 mobileSwipeStartX = e.changedTouches[0].screenX;
-                mobileSwipeCurrentX = mobileSwipeStartX;
-                isMobileSwiping = true;
-                previewDirection = 0;
-                mobileStripEl.style.transition = 'none';
-            }, { passive: true });
-
-            mobileStripEl.addEventListener('touchmove', function(e) {
-                if (!isMobileSwiping) return;
-                mobileSwipeCurrentX = e.changedTouches[0].screenX;
-                const diffX = mobileSwipeCurrentX - mobileSwipeStartX;
-                const clampedDiff = Math.max(-140, Math.min(140, diffX));
-                mobileStripEl.style.transform = 'translateX(' + clampedDiff + 'px)';
-
-                const nextDir = diffX < -24 ? 1 : (diffX > 24 ? -1 : 0);
-                if (nextDir !== previewDirection) {
-                    previewDirection = nextDir;
-                    if (nextDir === 0) {
-                        mobileStripEl.innerHTML = buildWeekStripHtml(currentWeekStart, selectedMobileDateStr, mobileShowWholeWeek, true);
-                    } else {
-                        const previewWeekStart = new Date(
-                            currentWeekStart.getFullYear(),
-                            currentWeekStart.getMonth(),
-                            currentWeekStart.getDate() + nextDir * 7
-                        );
-                        mobileStripEl.innerHTML = buildWeekStripHtml(previewWeekStart, '', false, false);
-                    }
-                }
             }, { passive: true });
 
             mobileStripEl.addEventListener('touchend', function(e) {
-                if (!isMobileSwiping) return;
-                isMobileSwiping = false;
                 const diffX = e.changedTouches[0].screenX - mobileSwipeStartX;
-                mobileStripEl.style.transition = 'transform 180ms ease-out';
-                mobileStripEl.style.transform = 'translateX(0px)';
-
-                setTimeout(function() {
-                    if (Math.abs(diffX) > 45) {
-                        if (diffX < 0) {
-                            changeWeek(1);
-                        } else {
-                            changeWeek(-1);
-                        }
+                if (Math.abs(diffX) > 45) {
+                    if (diffX < 0) {
+                        changeWeek(1);
                     } else {
-                        renderMobileWeeklyView();
+                        changeWeek(-1);
                     }
-                }, 140);
+                }
             }, { passive: true });
         }
 

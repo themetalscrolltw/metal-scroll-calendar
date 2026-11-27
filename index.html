@@ -80,6 +80,868 @@
             pointer-events: none;
         }
 
+        .event-item {
+            height: 76px;
+        }
+
+        .event-item:hover .event-popover,
+        .event-popover:hover {
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
+            transform: translateY(0);
+        }
+
+        #mobileWeekStrip {
+            touch-action: pan-y;
+        }
+
+        @media (max-width: 767.98px) {
+            .desktop-calendar-view {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen p-4 md:p-8">
+
+    <div class="max-w-7xl mx-auto">
+        <header class="glass-indigo-panel flex flex-col md:flex-row justify-between items-center mb-6 p-6 rounded-2xl shadow-sm gap-4">
+            <div class="flex items-center gap-3 sm:gap-4 min-w-0">
+                <img src="logo_circle.png" alt="The Metal Scroll Logo" class="w-11 h-11 rounded-full object-cover border border-indigo-800/20 shrink-0" />
+                <div class="min-w-0">
+                    <div class="inline-flex items-center gap-2 text-[11px] font-semibold tracking-widest uppercase text-indigo-800/80 bg-indigo-100/70 px-2.5 py-0.5 rounded-full mb-1 whitespace-nowrap">
+                        <span>LIVE DISPATCH</span>
+                        <span>•</span>
+                        <span>EVENT CALENDAR</span>
+                    </div>
+                    <h1 class="text-base sm:text-xl md:text-2xl font-bold tracking-wide text-indigo-950 whitespace-nowrap">
+                        The Metal Scroll <span class="text-indigo-700/50 mx-1">|</span> <span id="brandZhTitle" class="text-indigo-900">金屬卷軸</span>
+                    </h1>
+                    <p id="subtitleText" class="text-sm text-slate-600 mt-0.5">全台金屬音樂演出行事曆</p>
+                </div>
+            </div>
+
+            <!-- 電腦版月份切換 + 中／英文切換（放在上個月／下個月下方） -->
+            <div class="hidden md:flex flex-col items-end gap-2 shrink-0">
+                <div class="flex items-center space-x-2.5 bg-white/70 border border-indigo-900/15 px-3 py-2 rounded-xl shrink-0">
+                    <button type="button" id="prevMonthBtn" onclick="changeMonth(-1)" class="px-3 py-1.5 bg-indigo-900/10 hover:bg-indigo-900/20 text-indigo-950 rounded-lg text-sm font-semibold transition whitespace-nowrap shrink-0">
+                        &larr; 上個月
+                    </button>
+                    <h2 id="currentMonthTitle" class="text-base md:text-lg font-bold text-indigo-950 w-32 text-center whitespace-nowrap shrink-0">
+                        2026年 11月
+                    </h2>
+                    <button type="button" id="nextMonthBtn" onclick="changeMonth(1)" class="px-3 py-1.5 bg-indigo-900/10 hover:bg-indigo-900/20 text-indigo-950 rounded-lg text-sm font-semibold transition whitespace-nowrap shrink-0">
+                        下個月 &rarr;
+                    </button>
+                </div>
+
+                <div class="flex items-center gap-1.5 bg-white/70 border border-indigo-900/15 px-2.5 py-1.5 rounded-xl shrink-0">
+                    <button type="button" id="btnLangZh" onclick="setLanguage('zh')" class="px-3 py-1 bg-indigo-900 text-white rounded-lg text-xs font-semibold transition whitespace-nowrap shrink-0 cursor-pointer">
+                        中文
+                    </button>
+                    <button type="button" id="btnLangEn" onclick="setLanguage('en')" class="px-3 py-1 bg-indigo-900/10 hover:bg-indigo-900/20 text-indigo-950 rounded-lg text-xs font-semibold transition whitespace-nowrap shrink-0 cursor-pointer">
+                        English
+                    </button>
+                </div>
+            </div>
+
+            <!-- 手機版一週一週制切換 + 快速跳轉 -->
+            <div class="flex md:hidden flex-col gap-2 w-full">
+                <div class="flex items-center justify-between gap-2 bg-white/70 border border-indigo-900/15 px-2.5 py-2 rounded-xl w-full">
+                    <button type="button" id="prevWeekBtn" onclick="changeWeek(-1)" class="px-2.5 py-1.5 bg-indigo-900/10 hover:bg-indigo-900/20 text-indigo-950 rounded-lg text-xs font-semibold transition whitespace-nowrap shrink-0">
+                        &larr; 上一週
+                    </button>
+                    <span id="mobileWeekRangeTitle" class="text-xs font-bold text-indigo-950 text-center whitespace-nowrap px-1">
+                        本週區間
+                    </span>
+                    <button type="button" id="nextWeekBtn" onclick="changeWeek(1)" class="px-2.5 py-1.5 bg-indigo-900/10 hover:bg-indigo-900/20 text-indigo-950 rounded-lg text-xs font-semibold transition whitespace-nowrap shrink-0">
+                        下一週 &rarr;
+                    </button>
+                </div>
+
+                <div class="flex items-center gap-1.5 w-full">
+                    <label class="flex-1 flex items-center gap-1.5 bg-white/80 border border-indigo-900/15 px-2.5 py-1.5 rounded-xl text-xs text-slate-600">
+                        <span id="jumpDateLabel" class="whitespace-nowrap font-semibold text-indigo-900">跳至日期</span>
+                        <input type="date" id="mobileDateJumpInput" onchange="jumpToMobileDate(this.value)" class="w-full bg-transparent text-xs font-medium text-indigo-950 focus:outline-none" />
+                    </label>
+                    <button type="button" id="backToWeekBtn" onclick="resetToCurrentWeek()" class="px-2.5 py-2 bg-indigo-900/10 hover:bg-indigo-900/20 text-indigo-950 rounded-xl text-xs font-semibold whitespace-nowrap shrink-0">
+                        回本週
+                    </button>
+                </div>
+
+                <div class="relative w-full">
+                    <input type="search" id="mobileSearchInput" oninput="handleMobileSearch(this.value)" placeholder="搜尋團名、活動名稱、場地或縣市..." class="w-full bg-white/85 border border-indigo-900/15 rounded-xl px-3 py-2 text-xs text-indigo-950 placeholder:text-slate-400 focus:outline-none focus:border-indigo-700" />
+                </div>
+
+                <div class="flex items-center justify-end gap-1.5 bg-white/70 border border-indigo-900/15 px-2.5 py-1.5 rounded-xl w-full">
+                    <button type="button" id="btnLangZhMobile" onclick="setLanguage('zh')" class="px-3 py-1 bg-indigo-900 text-white rounded-lg text-xs font-semibold transition whitespace-nowrap shrink-0 cursor-pointer">
+                        中文
+                    </button>
+                    <button type="button" id="btnLangEnMobile" onclick="setLanguage('en')" class="px-3 py-1 bg-indigo-900/10 hover:bg-indigo-900/20 text-indigo-950 rounded-lg text-xs font-semibold transition whitespace-nowrap shrink-0 cursor-pointer">
+                        English
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <main class="scroll-frame rounded-2xl p-5 md:p-7 overflow-visible">
+            <!-- 電腦版月曆網格 -->
+            <div class="desktop-calendar-view">
+                <div class="flex items-center justify-between text-xs text-indigo-950/65 mb-4 px-1">
+                    <span id="desktopHintText" class="font-medium tracking-wide">▣ 滑鼠移至演出項目可查看完整資訊與售票連結</span>
+                </div>
+
+                <div id="desktopWeekdayHeaders" class="grid grid-cols-7 gap-2 text-center font-bold text-xs md:text-sm mb-3">
+                    <div class="py-1.5 rounded-lg bg-indigo-900/10 text-indigo-900">日</div>
+                    <div class="py-1.5 rounded-lg bg-[#f4f1ea]/80 text-slate-600">一</div>
+                    <div class="py-1.5 rounded-lg bg-[#f4f1ea]/80 text-slate-600">二</div>
+                    <div class="py-1.5 rounded-lg bg-[#f4f1ea]/80 text-slate-600">三</div>
+                    <div class="py-1.5 rounded-lg bg-[#f4f1ea]/80 text-slate-600">四</div>
+                    <div class="py-1.5 rounded-lg bg-[#f4f1ea]/80 text-slate-600">五</div>
+                    <div class="py-1.5 rounded-lg bg-indigo-900/10 text-indigo-900">六</div>
+                </div>
+
+                <div id="calendarGrid" class="grid grid-cols-7 gap-2 overflow-visible"></div>
+            </div>
+
+            <!-- 手機版：當週日期列（左右滑動換週 + 點選單日顯示該日活動） -->
+            <section id="mobileWeeklyView" class="md:hidden">
+                <div id="mobileWeekStrip" class="grid grid-cols-7 gap-1 mb-4 select-none"></div>
+
+                <div class="flex items-center justify-between gap-2 mb-3">
+                    <h3 id="mobileWeeklyAgendaTitle" class="text-sm font-bold text-indigo-950">本週演出活動</h3>
+                    <div class="flex items-center gap-1.5">
+                        <button type="button" id="mobileShowWholeWeekBtn" onclick="toggleMobileWholeWeek()" class="text-xs font-semibold text-indigo-900 bg-indigo-100/80 px-2.5 py-1 rounded-lg whitespace-nowrap">
+                            顯示整週
+                        </button>
+                        <button type="button" id="mobileClearSearchBtn" onclick="clearMobileSearch()" class="hidden text-xs font-semibold text-indigo-800 bg-indigo-100/80 px-2.5 py-1 rounded-lg whitespace-nowrap">
+                            清除搜尋
+                        </button>
+                    </div>
+                </div>
+
+                <div id="mobileWeeklyEventList" class="space-y-3"></div>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://ybbwdtndrnnvfkeiclji.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_K7iIa_1ztydOrYUrO465DA_nqwN_K_6';
+
+        let today = new Date();
+        let currentYear = today.getFullYear();
+        let currentMonth = today.getMonth();
+        let eventsData = [];
+
+        let currentLang = 'zh';
+        let currentWeekStart = getSundayOfWeek(new Date());
+        let selectedMobileDateStr = formatDateStr(new Date());
+        let mobileShowWholeWeek = false;
+        let mobileSearchKeyword = '';
+
+        const MAX_CARD_BANDS = 3;
+
+        const TEXTS = {
+            zh: {
+                subtitle: '全台金屬音樂演出行事曆',
+                prevMonth: '&larr; 上個月',
+                nextMonth: '下個月 &rarr;',
+                prevWeek: '&larr; 上一週',
+                nextWeek: '下一週 &rarr;',
+                jumpDate: '跳至日期',
+                backToWeek: '回本週',
+                searchPlaceholder: '搜尋團名、活動名稱、場地或縣市...',
+                desktopHint: '▣ 滑鼠移至演出項目可查看完整資訊與售票連結',
+                weekdays: ['日', '一', '二', '三', '四', '五', '六'],
+                showWholeWeek: '顯示整週',
+                showDayOnly: '看選定日',
+                clearSearch: '清除搜尋',
+                defaultVenue: '未指定場地',
+                dateLabel: '日期：',
+                lineupLabel: '演出陣容',
+                ticketBtn: '前往售票 / 活動頁 &rarr;',
+                jumpToWeekBtn: '跳至此週',
+                noSearchResult: '找不到符合此關鍵字的演出活動。',
+                noDayEvent: '這一天目前沒有已排定的演出活動。',
+                noWeekEvent: '這一週目前沒有已排定的演出活動，可使用上方「跳至日期」或搜尋欄查詢其他場次。'
+            },
+            en: {
+                subtitle: 'Taiwan Metal Music Live Event Calendar',
+                prevMonth: '&larr; Prev Month',
+                nextMonth: 'Next Month &rarr;',
+                prevWeek: '&larr; Prev Week',
+                nextWeek: 'Next Week &rarr;',
+                jumpDate: 'Jump to',
+                backToWeek: 'This Week',
+                searchPlaceholder: 'Search band, event, venue, or city...',
+                desktopHint: '▣ Hover over an event to view full details and ticket link',
+                weekdays: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
+                showWholeWeek: 'Whole Week',
+                showDayOnly: 'Selected Day',
+                clearSearch: 'Clear',
+                defaultVenue: 'Venue TBD',
+                dateLabel: 'Date: ',
+                lineupLabel: 'Lineup',
+                ticketBtn: 'Tickets / Event Page &rarr;',
+                jumpToWeekBtn: 'Go to Week',
+                noSearchResult: 'No matching events found.',
+                noDayEvent: 'No scheduled events on this day.',
+                noWeekEvent: 'No scheduled events this week. Use date jump or search above.'
+            }
+        };
+
+        function setLanguage(lang) {
+            currentLang = lang;
+            const pairs = [
+                [document.getElementById('btnLangZh'), document.getElementById('btnLangEn')],
+                [document.getElementById('btnLangZhMobile'), document.getElementById('btnLangEnMobile')]
+            ];
+            pairs.forEach(function(pair) {
+                const zhBtn = pair[0];
+                const enBtn = pair[1];
+                if (!zhBtn || !enBtn) return;
+                if (lang === 'zh') {
+                    zhBtn.className = 'px-3 py-1 bg-indigo-900 text-white rounded-lg text-xs font-semibold transition whitespace-nowrap shrink-0 cursor-pointer';
+                    enBtn.className = 'px-3 py-1 bg-indigo-900/10 hover:bg-indigo-900/20 text-indigo-950 rounded-lg text-xs font-semibold transition whitespace-nowrap shrink-0 cursor-pointer';
+                } else {
+                    enBtn.className = 'px-3 py-1 bg-indigo-900 text-white rounded-lg text-xs font-semibold transition whitespace-nowrap shrink-0 cursor-pointer';
+                    zhBtn.className = 'px-3 py-1 bg-indigo-900/10 hover:bg-indigo-900/20 text-indigo-950 rounded-lg text-xs font-semibold transition whitespace-nowrap shrink-0 cursor-pointer';
+                }
+            });
+            applyLanguageTexts();
+            renderCalendar();
+        }
+
+        function applyLanguageTexts() {
+            const t = TEXTS[currentLang];
+            const subtitleEl = document.getElementById('subtitleText');
+            const prevMonthBtn = document.getElementById('prevMonthBtn');
+            const nextMonthBtn = document.getElementById('nextMonthBtn');
+            const prevWeekBtn = document.getElementById('prevWeekBtn');
+            const nextWeekBtn = document.getElementById('nextWeekBtn');
+            const jumpDateLabel = document.getElementById('jumpDateLabel');
+            const backToWeekBtn = document.getElementById('backToWeekBtn');
+            const searchInput = document.getElementById('mobileSearchInput');
+            const desktopHint = document.getElementById('desktopHintText');
+            const weekdayHeaders = document.getElementById('desktopWeekdayHeaders');
+            const clearSearchBtn = document.getElementById('mobileClearSearchBtn');
+
+            if (subtitleEl) subtitleEl.textContent = t.subtitle;
+            if (prevMonthBtn) prevMonthBtn.innerHTML = t.prevMonth;
+            if (nextMonthBtn) nextMonthBtn.innerHTML = t.nextMonth;
+            if (prevWeekBtn) prevWeekBtn.innerHTML = t.prevWeek;
+            if (nextWeekBtn) nextWeekBtn.innerHTML = t.nextWeek;
+            if (jumpDateLabel) jumpDateLabel.textContent = t.jumpDate;
+            if (backToWeekBtn) backToWeekBtn.textContent = t.backToWeek;
+            if (searchInput) searchInput.placeholder = t.searchPlaceholder;
+            if (desktopHint) desktopHint.textContent = t.desktopHint;
+            if (clearSearchBtn) clearSearchBtn.textContent = t.clearSearch;
+
+            if (weekdayHeaders) {
+                const cols = weekdayHeaders.children;
+                for (let i = 0; i < cols.length && i < t.weekdays.length; i++) {
+                    cols[i].textContent = t.weekdays[i];
+                }
+            }
+        }
+
+        function getSundayOfWeek(dateObj) {
+            const d = new Date(dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate());
+            d.setDate(d.getDate() - d.getDay());
+            return d;
+        }
+
+        function formatDateStr(dateObj) {
+            return (
+                dateObj.getFullYear() + '-' +
+                String(dateObj.getMonth() + 1).padStart(2, '0') + '-' +
+                String(dateObj.getDate()).padStart(2, '0')
+            );
+        }
+
+        function formatShortMonthDay(dateObj) {
+            return dateObj.getFullYear() + '/' + (dateObj.getMonth() + 1) + '/' + dateObj.getDate();
+        }
+
+        function escapeHtml(str) {
+            return String(str || '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        function stripScheduleMarkers(rawLineup) {
+            return String(rawLineup || '')
+                .replace(/\[TBD_START_TIME\]/g, '')
+                .replace(/\[TBD_END_TIME\]/g, '')
+                .replace(/\[END_TIME:\d{2}:\d{2}\]/g, '')
+                .replace(/尚未確定/g, '')
+                .trim();
+        }
+
+        function parseLineupTags(lineupStr) {
+            const cleanLineup = stripScheduleMarkers(lineupStr);
+            return cleanLineup
+                .split(/[,，、/|]+/)
+                .map(function(b) { return b.trim(); })
+                .filter(Boolean);
+        }
+
+        function formatEventDateDisplay(ev) {
+            const rawLineup = String(ev.lineup || '');
+            const hasStartTbd = rawLineup.includes('[TBD_START_TIME]');
+            const hasEndTbd = rawLineup.includes('[TBD_END_TIME]');
+            const endTimeMatch = rawLineup.match(/\[END_TIME:(\d{2}:\d{2})\]/);
+
+            const startFull = String(ev.start_date || '').replace('T', ' ');
+            const startDatePart = startFull.split(' ')[0] || '';
+            const startTimePart = hasStartTbd ? '' : (startFull.split(' ')[1] ? startFull.split(' ')[1].slice(0, 5) : '');
+
+            const startText = startDatePart
+                ? (startTimePart ? startDatePart + ' ' + startTimePart : startDatePart)
+                : '';
+
+            const endDatePart = ev.end_date ? String(ev.end_date).split('T')[0] : '';
+            const endTimePart = hasEndTbd ? '' : (endTimeMatch ? endTimeMatch[1] : '');
+
+            let endText = '';
+            if (endDatePart) {
+                if (endDatePart !== startDatePart) {
+                    endText = endTimePart ? (endDatePart + ' ' + endTimePart) : endDatePart;
+                } else if (endTimePart && endTimePart !== startTimePart) {
+                    endText = endTimePart;
+                }
+            }
+
+            return endText ? (startText + ' ～ ' + endText) : startText;
+        }
+
+        async function fetchEvents() {
+            if (!window.supabase || typeof window.supabase.createClient !== 'function') {
+                console.warn('Supabase SDK 尚未載入，先顯示空月曆');
+                eventsData = [];
+                return;
+            }
+            try {
+                const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+                const { data, error } = await supabaseClient
+                    .from('mp_events')
+                    .select('*, mp_venues(name, county), mp_event_sources(source_url)')
+                    .eq('status', 'published');
+
+                if (error) throw error;
+                eventsData = data || [];
+            } catch (err) {
+                console.error('載入活動失敗:', err);
+                eventsData = [];
+            }
+        }
+
+        function renderCalendar() {
+            const titleEl = document.getElementById('currentMonthTitle');
+            const gridEl = document.getElementById('calendarGrid');
+            if (titleEl && gridEl) {
+                if (currentLang === 'zh') {
+                    titleEl.textContent = currentYear + '年 ' + (currentMonth + 1) + '月';
+                } else {
+                    const enMonths = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                    titleEl.textContent = enMonths[currentMonth] + ' ' + currentYear;
+                }
+                gridEl.innerHTML = '';
+
+                const firstDayIndex = new Date(currentYear, currentMonth, 1).getDay();
+                const totalDays = new Date(currentYear, currentMonth + 1, 0).getDate();
+                const prevTotalDays = new Date(currentYear, currentMonth, 0).getDate();
+
+                for (let i = firstDayIndex; i > 0; i--) {
+                    const dayNum = prevTotalDays - i + 1;
+                    gridEl.appendChild(createCell(dayNum, true, ''));
+                }
+
+                for (let day = 1; day <= totalDays; day++) {
+                    const dateStr =
+                        currentYear + '-' +
+                        String(currentMonth + 1).padStart(2, '0') + '-' +
+                        String(day).padStart(2, '0');
+                    gridEl.appendChild(createCell(day, false, dateStr));
+                }
+
+                const totalCells = gridEl.children.length;
+                const targetCells = totalCells <= 35 ? 35 : 42;
+                for (let i = 1; i <= targetCells - totalCells; i++) {
+                    gridEl.appendChild(createCell(i, true, ''));
+                }
+            }
+
+            syncMobileDateInput();
+            renderMobileWeeklyView();
+        }
+
+        function syncMobileDateInput() {
+            const inputEl = document.getElementById('mobileDateJumpInput');
+            if (inputEl) {
+                inputEl.value = selectedMobileDateStr || formatDateStr(currentWeekStart);
+            }
+        }
+
+        function changeWeek(deltaWeeks) {
+            currentWeekStart = new Date(
+                currentWeekStart.getFullYear(),
+                currentWeekStart.getMonth(),
+                currentWeekStart.getDate() + deltaWeeks * 7
+            );
+            const selParts = selectedMobileDateStr.split('-').map(Number);
+            const selDate = new Date(selParts[0], (selParts[1] || 1) - 1, selParts[2] || 1);
+            selDate.setDate(selDate.getDate() + deltaWeeks * 7);
+            selectedMobileDateStr = formatDateStr(selDate);
+            syncMobileDateInput();
+            renderMobileWeeklyView();
+        }
+
+        function selectMobileDay(dateStr) {
+            selectedMobileDateStr = dateStr;
+            mobileShowWholeWeek = false;
+            syncMobileDateInput();
+            renderMobileWeeklyView();
+        }
+
+        function toggleMobileWholeWeek() {
+            mobileShowWholeWeek = !mobileShowWholeWeek;
+            renderMobileWeeklyView();
+        }
+
+        function jumpToMobileDate(dateValue) {
+            if (!dateValue) return;
+            const parts = dateValue.split('-').map(Number);
+            if (parts.length !== 3) return;
+            const picked = new Date(parts[0], parts[1] - 1, parts[2]);
+            currentWeekStart = getSundayOfWeek(picked);
+            selectedMobileDateStr = formatDateStr(picked);
+            mobileShowWholeWeek = false;
+            if (mobileSearchKeyword) {
+                clearMobileSearch();
+                return;
+            }
+            renderMobileWeeklyView();
+        }
+
+        function resetToCurrentWeek() {
+            const now = new Date();
+            currentWeekStart = getSundayOfWeek(now);
+            selectedMobileDateStr = formatDateStr(now);
+            mobileShowWholeWeek = false;
+            syncMobileDateInput();
+            if (mobileSearchKeyword) {
+                clearMobileSearch();
+                return;
+            }
+            renderMobileWeeklyView();
+        }
+
+        function handleMobileSearch(val) {
+            mobileSearchKeyword = String(val || '').trim().toLowerCase();
+            renderMobileWeeklyView();
+        }
+
+        function clearMobileSearch() {
+            mobileSearchKeyword = '';
+            const searchInput = document.getElementById('mobileSearchInput');
+            if (searchInput) searchInput.value = '';
+            renderMobileWeeklyView();
+        }
+
+        function renderMobileWeeklyView() {
+            const t = TEXTS[currentLang];
+            const rangeTitleEl = document.getElementById('mobileWeekRangeTitle');
+            const stripEl = document.getElementById('mobileWeekStrip');
+            const agendaTitleEl = document.getElementById('mobileWeeklyAgendaTitle');
+            const wholeWeekBtn = document.getElementById('mobileShowWholeWeekBtn');
+            const clearSearchBtn = document.getElementById('mobileClearSearchBtn');
+            const listEl = document.getElementById('mobileWeeklyEventList');
+            if (!rangeTitleEl || !stripEl || !agendaTitleEl || !listEl) return;
+
+            const weekNames = t.weekdays;
+            const weekDates = [];
+            for (let i = 0; i < 7; i++) {
+                weekDates.push(new Date(
+                    currentWeekStart.getFullYear(),
+                    currentWeekStart.getMonth(),
+                    currentWeekStart.getDate() + i
+                ));
+            }
+
+            const startShort = formatShortMonthDay(weekDates[0]);
+            const endShort = (weekDates[6].getMonth() + 1) + '/' + weekDates[6].getDate();
+            rangeTitleEl.textContent = startShort + ' - ' + endShort;
+
+            const weekDateStrSet = new Set(weekDates.map(formatDateStr));
+
+            if (mobileSearchKeyword) {
+                stripEl.classList.add('hidden');
+                if (wholeWeekBtn) wholeWeekBtn.classList.add('hidden');
+                if (clearSearchBtn) clearSearchBtn.classList.remove('hidden');
+
+                const matchedEvents = eventsData
+                    .filter(function(ev) {
+                        const cleanLineup = stripScheduleMarkers(ev.lineup || '');
+                        const haystack = [
+                            ev.title,
+                            cleanLineup,
+                            ev.mp_venues && ev.mp_venues.name,
+                            ev.mp_venues && ev.mp_venues.county,
+                            ev.start_date
+                        ].join(' ').toLowerCase();
+                        return haystack.indexOf(mobileSearchKeyword) !== -1;
+                    })
+                    .sort(function(a, b) {
+                        return String(a.start_date || '').localeCompare(String(b.start_date || ''));
+                    });
+
+                agendaTitleEl.textContent = currentLang === 'zh'
+                    ? ('搜尋「' + mobileSearchKeyword + '」結果（共 ' + matchedEvents.length + ' 場）')
+                    : ('Search "' + mobileSearchKeyword + '" (' + matchedEvents.length + ')');
+
+                if (matchedEvents.length === 0) {
+                    listEl.innerHTML =
+                        '<div class="rounded-xl bg-white/80 border border-indigo-900/15 p-4 text-xs text-slate-500 text-center">' +
+                        t.noSearchResult +
+                        '</div>';
+                    return;
+                }
+
+                listEl.innerHTML = matchedEvents.map(function(ev) {
+                    return renderMobileEventCard(ev, true);
+                }).join('');
+                return;
+            }
+
+            stripEl.classList.remove('hidden');
+            if (wholeWeekBtn) {
+                wholeWeekBtn.classList.remove('hidden');
+                wholeWeekBtn.textContent = mobileShowWholeWeek ? t.showDayOnly : t.showWholeWeek;
+            }
+            if (clearSearchBtn) clearSearchBtn.classList.add('hidden');
+
+            stripEl.innerHTML = weekDates.map(function(dObj, idx) {
+                const dStr = formatDateStr(dObj);
+                const dayCount = eventsData.filter(function(ev) {
+                    return ev.start_date && String(ev.start_date).split('T')[0] === dStr;
+                }).length;
+                const isSelected = !mobileShowWholeWeek && dStr === selectedMobileDateStr;
+
+                return (
+                    '<button type="button" onclick="selectMobileDay(\'' + dStr + '\')" ' +
+                        'class="flex flex-col items-center py-2 px-1 rounded-xl border transition cursor-pointer ' +
+                        (isSelected
+                            ? 'bg-indigo-900 text-white border-indigo-950 shadow-sm'
+                            : ('bg-white/85 text-slate-700 ' + (dayCount > 0 ? 'border-indigo-900/25' : 'border-indigo-900/15'))) +
+                    '">' +
+                        '<span class="text-[11px] font-medium ' + (isSelected ? 'text-indigo-100' : 'text-slate-500') + '">' + weekNames[idx] + '</span>' +
+                        '<span class="text-xs font-bold mt-0.5 ' + (isSelected ? 'text-white' : 'text-indigo-950') + '">' + dObj.getDate() + '</span>' +
+                        '<span class="mt-1 h-4 flex items-center justify-center">' +
+                            (dayCount > 0
+                                ? '<span class="text-[10px] font-bold px-1.5 py-0.5 rounded-full ' + (isSelected ? 'bg-white text-indigo-950' : 'bg-indigo-900 text-white') + '">' + dayCount + '</span>'
+                                : '<span class="w-1 h-1 rounded-full bg-transparent"></span>') +
+                        '</span>' +
+                    '</button>'
+                );
+            }).join('');
+
+            if (mobileShowWholeWeek) {
+                const weekEvents = eventsData
+                    .filter(function(ev) {
+                        if (!ev.start_date) return false;
+                        const evDate = String(ev.start_date).split('T')[0];
+                        return weekDateStrSet.has(evDate);
+                    })
+                    .sort(function(a, b) {
+                        return String(a.start_date || '').localeCompare(String(b.start_date || ''));
+                    });
+
+                agendaTitleEl.textContent = currentLang === 'zh'
+                    ? ('本週演出（' + startShort + ' - ' + endShort + '，共 ' + weekEvents.length + ' 場）')
+                    : ('This Week (' + startShort + ' - ' + endShort + ', ' + weekEvents.length + ')');
+
+                if (weekEvents.length === 0) {
+                    listEl.innerHTML =
+                        '<div class="rounded-xl bg-white/80 border border-indigo-900/15 p-4 text-xs text-slate-500 text-center">' +
+                        t.noWeekEvent +
+                        '</div>';
+                    return;
+                }
+
+                listEl.innerHTML = weekEvents.map(function(ev) {
+                    return renderMobileEventCard(ev, false);
+                }).join('');
+                return;
+            }
+
+            const dayEvents = eventsData
+                .filter(function(ev) {
+                    return ev.start_date && String(ev.start_date).split('T')[0] === selectedMobileDateStr;
+                })
+                .sort(function(a, b) {
+                    return String(a.start_date || '').localeCompare(String(b.start_date || ''));
+                });
+
+            agendaTitleEl.textContent = currentLang === 'zh'
+                ? (selectedMobileDateStr + ' 演出活動（共 ' + dayEvents.length + ' 場）')
+                : (selectedMobileDateStr + ' Events (' + dayEvents.length + ')');
+
+            if (dayEvents.length === 0) {
+                listEl.innerHTML =
+                    '<div class="rounded-xl bg-white/80 border border-indigo-900/15 p-4 text-xs text-slate-500 text-center">' +
+                    t.noDayEvent +
+                    '</div>';
+                return;
+            }
+
+            listEl.innerHTML = dayEvents.map(function(ev) {
+                return renderMobileEventCard(ev, false);
+            }).join('');
+        }
+
+        function renderMobileEventCard(ev, showJumpToWeekBtn) {
+            const t = TEXTS[currentLang];
+            const title = escapeHtml(ev.title || '');
+            const cleanLineup = stripScheduleMarkers(ev.lineup || '');
+            const lineupEscaped = escapeHtml(cleanLineup);
+            const bands = parseLineupTags(ev.lineup || '');
+            const venueName = escapeHtml((ev.mp_venues && ev.mp_venues.name) || t.defaultVenue);
+            const county = escapeHtml((ev.mp_venues && ev.mp_venues.county) || '');
+            const rawUrl = (ev.mp_event_sources && ev.mp_event_sources[0] && ev.mp_event_sources[0].source_url) || '#';
+            const sourceUrl = escapeHtml(rawUrl);
+            const dateDisplay = escapeHtml(formatEventDateDisplay(ev));
+            const startDatePart = ev.start_date ? String(ev.start_date).split('T')[0] : '';
+
+            const tagsHtml = bands
+                .map(function(band) {
+                    return '<span class="inline-block bg-[#f4f1ea] text-indigo-950 border border-indigo-900/20 text-xs font-medium px-2 py-0.5 rounded-md">' + escapeHtml(band) + '</span>';
+                })
+                .join('');
+
+            const jumpBtnHtml = showJumpToWeekBtn && startDatePart
+                ? '<button type="button" onclick="jumpToMobileDate(\'' + escapeHtml(startDatePart) + '\')" class="px-3 py-2 bg-indigo-900/10 hover:bg-indigo-900/20 text-indigo-950 text-xs font-semibold rounded-lg transition whitespace-nowrap">' + t.jumpToWeekBtn + '</button>'
+                : '';
+
+            return (
+                '<article class="rounded-xl bg-white/90 border border-indigo-900/20 p-3.5 shadow-sm">' +
+                    '<div class="flex items-center justify-between gap-2 text-xs text-indigo-800 font-semibold mb-1">' +
+                        '<span>' + dateDisplay + '</span>' +
+                        '<span class="text-slate-600 font-medium">' + (county ? county + ' · ' : '') + venueName + '</span>' +
+                    '</div>' +
+                    '<div class="text-sm font-bold text-indigo-950 leading-snug mb-2 break-words">' +
+                        '&#9672; ' + title +
+                    '</div>' +
+                    '<div class="flex flex-wrap gap-1.5 mb-2.5">' +
+                        (tagsHtml || ('<span class="text-xs text-slate-600">' + lineupEscaped + '</span>')) +
+                    '</div>' +
+                    '<div class="flex items-center gap-2">' +
+                        (rawUrl !== '#'
+                            ? '<a href="' + sourceUrl + '" target="_blank" rel="noopener noreferrer" class="flex-1 text-center bg-indigo-900 hover:bg-indigo-800 text-white text-xs font-semibold py-2 rounded-lg transition">' + t.ticketBtn + '</a>'
+                            : '') +
+                        jumpBtnHtml +
+                    '</div>' +
+                '</article>'
+            );
+        }
+
+        function createCell(dayNum, isOtherMonth, dateStr) {
+            const t = TEXTS[currentLang];
+            const cell = document.createElement('div');
+            cell.className =
+                'day-cell min-h-[144px] rounded-xl p-2 flex flex-col justify-between overflow-visible ' +
+                (isOtherMonth ? 'other-month text-slate-400' : 'text-slate-700');
+
+            let eventsHtml = '';
+            if (!isOtherMonth && dateStr) {
+                const dayEvents = eventsData.filter(function(ev) {
+                    return ev.start_date && String(ev.start_date).split('T')[0] === dateStr;
+                });
+
+                dayEvents.forEach(function(ev) {
+                    const title = escapeHtml(ev.title || '');
+                    const cleanLineup = stripScheduleMarkers(ev.lineup || '');
+                    const lineupEscaped = escapeHtml(cleanLineup);
+                    const bands = parseLineupTags(ev.lineup || '');
+                    const venueName = escapeHtml((ev.mp_venues && ev.mp_venues.name) || t.defaultVenue);
+                    const county = escapeHtml((ev.mp_venues && ev.mp_venues.county) || '');
+                    const rawUrl = (ev.mp_event_sources && ev.mp_event_sources[0] && ev.mp_event_sources[0].source_url) || '#';
+                    const sourceUrl = escapeHtml(rawUrl);
+                    const dateDisplay = escapeHtml(formatEventDateDisplay(ev));
+
+                    const visibleBands = bands.slice(0, MAX_CARD_BANDS);
+                    const hasMoreBands = bands.length > MAX_CARD_BANDS;
+
+                    const tagsHtml = visibleBands
+                        .map(function(band) {
+                            return '<span class="inline-block bg-[#f4f1ea] text-indigo-950 border border-indigo-900/20 text-[11px] font-medium px-1.5 py-0.5 rounded max-w-[90px] truncate align-middle">' + escapeHtml(band) + '</span>';
+                        })
+                        .join('') +
+                        (hasMoreBands
+                            ? '<span class="inline-block text-indigo-800 text-[10px] font-semibold px-1 py-0.5 align-middle whitespace-nowrap">and more</span>'
+                            : '');
+
+                    const popoverTagsHtml = bands
+                        .map(function(band) {
+                            return '<span class="inline-block bg-[#f4f1ea] text-indigo-950 border border-indigo-900/20 text-xs font-medium px-2 py-0.5 rounded-md">' + escapeHtml(band) + '</span>';
+                        })
+                        .join('');
+
+                    eventsHtml +=
+                        '<div class="event-item relative bg-indigo-900/[0.07] border border-indigo-800/20 rounded-lg p-2 mb-2 hover:z-30 transition flex flex-col justify-between">' +
+                            '<a href="' + sourceUrl + '" target="_blank" rel="noopener noreferrer" class="block text-xs font-bold text-indigo-950 hover:text-indigo-700 hover:underline leading-snug truncate">' +
+                                '&#9672; ' + title +
+                            '</a>' +
+                            '<div class="flex items-center gap-1 overflow-hidden whitespace-nowrap">' + (tagsHtml || ('<span class="text-[11px] text-slate-600 truncate">' + lineupEscaped + '</span>')) + '</div>' +
+                            '<div class="event-popover opacity-0 invisible translate-y-1 pointer-events-none transition-all duration-150 absolute left-0 top-full pt-2 w-72 sm:w-80 z-50 text-left">' +
+                                '<div class="bg-white/95 backdrop-blur-md border border-indigo-900/20 rounded-xl shadow-2xl p-4">' +
+                                    '<div class="text-xs font-semibold text-indigo-800 mb-1">' + (county ? county + ' · ' : '') + venueName + '</div>' +
+                                    '<div class="text-sm font-bold text-slate-900 leading-snug mb-2 break-words">' + title + '</div>' +
+                                    '<div class="text-xs text-slate-500 mb-2.5">' + t.dateLabel + dateDisplay + '</div>' +
+                                    '<div class="mb-3">' +
+                                        '<div class="text-[11px] font-semibold text-slate-500 mb-1">' + t.lineupLabel + '</div>' +
+                                        '<div class="flex flex-wrap gap-1.5">' + (popoverTagsHtml || ('<span class="text-xs text-slate-600">' + lineupEscaped + '</span>')) + '</div>' +
+                                    '</div>' +
+                                    (rawUrl !== '#'
+                                        ? '<a href="' + sourceUrl + '" target="_blank" rel="noopener noreferrer" class="inline-block w-full text-center bg-indigo-900 hover:bg-indigo-800 text-white text-xs font-semibold py-1.5 rounded-lg transition">' + t.ticketBtn + '</a>'
+                                        : '') +
+                                '</div>' +
+                            '</div>' +
+                        '</div>';
+                });
+            }
+
+            cell.innerHTML =
+                '<div class="text-right text-xs font-semibold mb-1 ' + (isOtherMonth ? 'text-slate-400' : 'text-indigo-950/75') + '">' + dayNum + '</div>' +
+                '<div class="space-y-1">' + eventsHtml + '</div>';
+            return cell;
+        }
+
+        function changeMonth(direction) {
+            currentMonth += direction;
+            if (currentMonth > 11) {
+                currentMonth = 0;
+                currentYear++;
+            } else if (currentMonth < 0) {
+                currentMonth = 11;
+                currentYear--;
+            }
+            renderCalendar();
+        }
+
+        let mobileSwipeStartX = 0;
+        const mobileStripEl = document.getElementById('mobileWeekStrip');
+        if (mobileStripEl) {
+            mobileStripEl.addEventListener('touchstart', function(e) {
+                mobileSwipeStartX = e.changedTouches[0].screenX;
+            }, { passive: true });
+
+            mobileStripEl.addEventListener('touchend', function(e) {
+                const diffX = e.changedTouches[0].screenX - mobileSwipeStartX;
+                if (Math.abs(diffX) > 45) {
+                    if (diffX < 0) {
+                        changeWeek(1);
+                    } else {
+                        changeWeek(-1);
+                    }
+                }
+            }, { passive: true });
+        }
+
+        document.addEventListener('DOMContentLoaded', async function() {
+            renderCalendar();
+            await fetchEvents();
+            renderCalendar();
+        });
+    </script>
+</body>
+</html><!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Metal Scroll | 金屬卷軸 — 活動月曆</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body {
+            background-color: #eef0f7;
+            background-image:
+                radial-gradient(circle at 12% 10%, rgba(67, 56, 202, 0.14) 0%, transparent 42%),
+                radial-gradient(circle at 88% 18%, rgba(30, 58, 138, 0.12) 0%, transparent 45%),
+                linear-gradient(180deg, rgba(238, 240, 247, 0.92) 0%, rgba(244, 241, 234, 0.95) 100%);
+            color: #1e2538;
+        }
+
+        .glass-indigo-panel {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.86) 0%, rgba(224, 231, 255, 0.52) 100%);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(67, 56, 202, 0.18);
+        }
+
+        .scroll-frame {
+            position: relative;
+            background: rgba(255, 255, 255, 0.88);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(55, 48, 163, 0.18);
+            box-shadow: 0 14px 36px -18px rgba(30, 41, 59, 0.22);
+        }
+
+        .scroll-frame::before,
+        .scroll-frame::after {
+            content: "";
+            position: absolute;
+            top: 18px;
+            bottom: 18px;
+            width: 5px;
+            border-radius: 999px;
+            background: linear-gradient(
+                180deg,
+                rgba(55, 48, 163, 0.45) 0%,
+                rgba(180, 172, 154, 0.55) 50%,
+                rgba(55, 48, 163, 0.45) 100%
+            );
+            pointer-events: none;
+        }
+
+        .scroll-frame::before { left: 8px; }
+        .scroll-frame::after { right: 8px; }
+
+        .day-cell {
+            position: relative;
+            background: rgba(255, 255, 255, 0.82);
+            border: 1px solid rgba(79, 70, 229, 0.14);
+            transition: transform 0.15s ease, border-color 0.15s ease, background-color 0.15s ease;
+        }
+
+        .day-cell:hover {
+            border-color: rgba(55, 48, 163, 0.38);
+            background: rgba(238, 242, 255, 0.72);
+        }
+
+        .day-cell.other-month {
+            background: rgba(244, 241, 234, 0.55);
+            border-color: rgba(148, 163, 184, 0.18);
+        }
+
+        .day-cell::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 14px;
+            height: 14px;
+            border-top: 2px solid rgba(67, 56, 202, 0.28);
+            border-left: 2px solid rgba(67, 56, 202, 0.28);
+            border-top-left-radius: 10px;
+            pointer-events: none;
+        }
+
         .event-item:hover .event-popover,
         .event-popover:hover {
             opacity: 1;

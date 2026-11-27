@@ -229,6 +229,7 @@
     <script>
         const SUPABASE_URL = 'https://ybbwdtndrnnvfkeiclji.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_K7iIa_1ztydOrYUrO465DA_nqwN_K_6';
+        const VIEW_STATE_KEY = 'tms_calendar_view_state_v1';
 
         let today = new Date();
         let currentYear = today.getFullYear();
@@ -242,6 +243,42 @@
         let mobileSearchKeyword = '';
 
         const MAX_CARD_BANDS = 2;
+
+        function loadSavedViewState() {
+            try {
+                const raw = sessionStorage.getItem(VIEW_STATE_KEY);
+                if (!raw) return;
+                const saved = JSON.parse(raw);
+                if (typeof saved.year === 'number' && typeof saved.month === 'number' && saved.month >= 0 && saved.month <= 11) {
+                    currentYear = saved.year;
+                    currentMonth = saved.month;
+                }
+                if (typeof saved.selectedMobileDateStr === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(saved.selectedMobileDateStr)) {
+                    const parts = saved.selectedMobileDateStr.split('-').map(Number);
+                    const picked = new Date(parts[0], parts[1] - 1, parts[2]);
+                    if (!isNaN(picked.getTime())) {
+                        selectedMobileDateStr = saved.selectedMobileDateStr;
+                        currentWeekStart = getSundayOfWeek(picked);
+                    }
+                }
+            } catch (e) {
+                console.warn('讀取檢視狀態失敗:', e);
+            }
+        }
+
+        function saveViewState() {
+            try {
+                sessionStorage.setItem(VIEW_STATE_KEY, JSON.stringify({
+                    year: currentYear,
+                    month: currentMonth,
+                    selectedMobileDateStr: selectedMobileDateStr
+                }));
+            } catch (e) {
+                console.warn('儲存檢視狀態失敗:', e);
+            }
+        }
+
+        loadSavedViewState();
 
         const TEXTS = {
             zh: {
@@ -448,6 +485,11 @@
             }
         }
 
+        async function refreshEventsAndRender() {
+            await fetchEvents();
+            renderCalendar();
+        }
+
         function renderCalendar() {
             const titleEl = document.getElementById('currentMonthTitle');
             const gridEl = document.getElementById('calendarGrid');
@@ -505,6 +547,7 @@
             const selDate = new Date(selParts[0], (selParts[1] || 1) - 1, selParts[2] || 1);
             selDate.setDate(selDate.getDate() + deltaWeeks * 7);
             selectedMobileDateStr = formatDateStr(selDate);
+            saveViewState();
             syncMobileDateInput();
             renderMobileWeeklyView();
         }
@@ -512,6 +555,7 @@
         function selectMobileDay(dateStr) {
             selectedMobileDateStr = dateStr;
             mobileShowWholeWeek = false;
+            saveViewState();
             syncMobileDateInput();
             renderMobileWeeklyView();
         }
@@ -529,6 +573,7 @@
             currentWeekStart = getSundayOfWeek(picked);
             selectedMobileDateStr = formatDateStr(picked);
             mobileShowWholeWeek = false;
+            saveViewState();
             if (mobileSearchKeyword) {
                 clearMobileSearch();
                 return;
@@ -541,6 +586,7 @@
             currentWeekStart = getSundayOfWeek(now);
             selectedMobileDateStr = formatDateStr(now);
             mobileShowWholeWeek = false;
+            saveViewState();
             syncMobileDateInput();
             if (mobileSearchKeyword) {
                 clearMobileSearch();
@@ -858,6 +904,7 @@
                 currentMonth = 11;
                 currentYear--;
             }
+            saveViewState();
             renderCalendar();
         }
 
@@ -880,10 +927,20 @@
             }, { passive: true });
         }
 
+        document.addEventListener('visibilitychange', function() {
+            if (document.visibilityState === 'visible') {
+                refreshEventsAndRender();
+            }
+        });
+
+        window.addEventListener('focus', function() {
+            refreshEventsAndRender();
+        });
+
         document.addEventListener('DOMContentLoaded', async function() {
             renderCalendar();
-            await fetchEvents();
-            renderCalendar();
+            await refreshEventsAndRender();
+            setInterval(refreshEventsAndRender, 60000);
         });
     </script>
 </body>

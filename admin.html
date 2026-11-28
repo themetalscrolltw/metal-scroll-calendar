@@ -23,7 +23,21 @@
 </head>
 <body class="min-h-screen p-4 md:p-8">
 
-    <div class="max-w-6xl mx-auto">
+    <div id="lockScreen" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#eef0f7]/95 backdrop-blur-sm">
+        <div class="glass-panel rounded-2xl max-w-sm w-full p-6 shadow-xl">
+            <form id="lockForm" class="space-y-4 text-sm">
+                <label for="adminPassInput" class="block font-bold text-indigo-950 text-base">請輸入密碼</label>
+                <input type="password" id="adminPassInput" required autocomplete="current-password"
+                    class="w-full px-3 py-2 rounded-xl border border-indigo-900/20 bg-white">
+                <p id="lockErrorMsg" class="hidden text-xs text-rose-700 font-semibold"></p>
+                <button type="submit" class="w-full py-2 rounded-xl bg-indigo-900 hover:bg-indigo-800 text-white font-bold cursor-pointer">
+                    確認
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div id="adminApp" class="max-w-6xl mx-auto hidden">
         <header class="glass-panel flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 p-6 rounded-2xl">
             <div class="min-w-0">
                 <div class="inline-flex items-center gap-2 text-[11px] font-semibold tracking-widest uppercase text-indigo-800 bg-indigo-100/80 px-2.5 py-0.5 rounded-full mb-1.5">
@@ -136,12 +150,52 @@
     </div>
 
     <script>
+        const ADMIN_PASSCODE = '880826';
+        const ADMIN_AUTH_KEY = 'tms_admin_unlocked_v1';
+
         const SUPABASE_URL = 'https://ybbwdtndrnnvfkeiclji.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_K7iIa_1ztydOrYUrO465DA_nqwN_K_6';
         const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         let allEvents = [];
         let currentTab = 'active';
+        let eventsLoaded = false;
+
+        function unlockAdminIfAuthorized() {
+            const lockScreen = document.getElementById('lockScreen');
+            const adminApp = document.getElementById('adminApp');
+            lockScreen.classList.add('hidden');
+            adminApp.classList.remove('hidden');
+            if (!eventsLoaded) {
+                eventsLoaded = true;
+                fetchEvents();
+            }
+        }
+
+        document.getElementById('lockForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const inputEl = document.getElementById('adminPassInput');
+            const errEl = document.getElementById('lockErrorMsg');
+            if (inputEl.value === ADMIN_PASSCODE) {
+                try {
+                    sessionStorage.setItem(ADMIN_AUTH_KEY, '1');
+                } catch (err) {}
+                errEl.classList.add('hidden');
+                errEl.textContent = '';
+                inputEl.value = '';
+                unlockAdminIfAuthorized();
+            } else {
+                errEl.textContent = '密碼錯誤';
+                errEl.classList.remove('hidden');
+                inputEl.select();
+            }
+        });
+
+        try {
+            if (sessionStorage.getItem(ADMIN_AUTH_KEY) === '1') {
+                unlockAdminIfAuthorized();
+            }
+        } catch (err) {}
 
         function escapeHtml(str) {
             return String(str || '')
@@ -393,6 +447,20 @@
                 const submitterName = document.getElementById('editSubmitterName').value.trim();
                 const submitterSocial = document.getElementById('editSubmitterSocial').value.trim();
 
+                if (endDate < startDate) {
+                    alert('結束日期不能早於開始日期');
+                    return;
+                }
+
+                if (!tbdStart && !tbdEnd && startDate && startTime && endDate && endTime) {
+                    const startComparable = startDate + 'T' + startTime;
+                    const endComparable = endDate + 'T' + endTime;
+                    if (endComparable < startComparable) {
+                        alert('結束時間不能早於開始時間');
+                        return;
+                    }
+                }
+
                 let timePart = '12:00:00';
                 if (tbdStart) {
                     lineup += ' [TBD_START_TIME]';
@@ -438,8 +506,6 @@
                 saveBtn.disabled = false;
             }
         });
-
-        fetchEvents();
     </script>
 </body>
 </html>

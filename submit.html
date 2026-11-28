@@ -45,9 +45,20 @@
         .scroll-card::after { right: 10px; }
 
         .form-input {
+            box-sizing: border-box;
+            width: 100%;
+            max-width: 100%;
+            min-width: 0;
             background: rgba(255, 255, 255, 0.85);
             border: 1px solid rgba(67, 56, 202, 0.2);
             transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+        }
+
+        input[type="datetime-local"].form-input {
+            -webkit-appearance: none;
+            appearance: none;
+            display: block;
+            min-height: 42px;
         }
 
         .form-input:focus {
@@ -100,7 +111,7 @@
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <!-- 開始日期與時間 -->
-                <div>
+                <div class="min-w-0">
                     <label for="start_date" class="block text-sm font-bold text-indigo-950 mb-1.5">
                         開始日期與時間 <span class="text-indigo-600">*</span>
                     </label>
@@ -112,7 +123,7 @@
                 </div>
 
                 <!-- 結束日期與時間 -->
-                <div>
+                <div class="min-w-0">
                     <label for="end_date" class="block text-sm font-bold text-indigo-950 mb-1.5">
                         結束日期與時間 <span class="text-xs font-normal text-slate-500">(*單日可不填)</span>
                     </label>
@@ -125,13 +136,13 @@
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
+                <div class="min-w-0">
                     <label for="county" class="block text-sm font-bold text-indigo-950 mb-1.5">
                         城市 <span class="text-indigo-600">*</span>
                     </label>
                     <input type="text" id="county" required placeholder="例：台北市" class="form-input w-full rounded-xl px-4 py-2.5 text-sm text-slate-800 placeholder-slate-400">
                 </div>
-                <div>
+                <div class="min-w-0">
                     <label for="venue" class="block text-sm font-bold text-indigo-950 mb-1.5">
                         場地名稱 <span class="text-indigo-600">*</span>
                     </label>
@@ -147,13 +158,13 @@
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
+                <div class="min-w-0">
                     <label for="submitter_name" class="block text-sm font-bold text-indigo-950 mb-1.5">
                         投稿人是誰（主辦／樂團名稱） <span class="text-indigo-600">*</span>
                     </label>
                     <input type="text" id="submitter_name" required class="form-input w-full rounded-xl px-4 py-2.5 text-sm text-slate-800 placeholder-slate-400">
                 </div>
-                <div>
+                <div class="min-w-0">
                     <label for="submitter_social" class="block text-sm font-bold text-indigo-950 mb-1.5">
                         社群官方 IG <span class="text-indigo-600">*</span>
                     </label>

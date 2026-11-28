@@ -401,13 +401,13 @@
                     .update({
                         title: title,
                         lineup: lineup,
-                        start_date: startDate + 'T' + timePart + '+08:00',
+                        start_date: startDate + ' ' + timePart + '+00',
                         end_date: endDate,
                         submitter_name: submitterName,
                         submitter_social: submitterSocial
                     })
                     .eq('id', id)
-                    .select('id');
+                    .select('id, start_date');
 
                 if (error) {
                     alert('更新失敗：' + error.message);
@@ -415,7 +415,7 @@
                 }
 
                 if (!data || data.length === 0) {
-                    alert('更新未生效（可能是資料庫權限政策限制，或找不到該筆資料）。');
+                    alert('更新未生效：Supabase RLS 權限可能未開放 UPDATE，請至 Supabase mp_events 的 RLS policies 新增 UPDATE 規則。');
                     return;
                 }
 
